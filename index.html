@@ -43,6 +43,18 @@
         }
 
         .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo img {
+            height: 40px;
+            width: auto;
+            border-radius: 8px;
+        }
+
+        .logo-text {
             font-size: 24px;
             font-weight: 700;
             color: #ffffff;
@@ -903,7 +915,10 @@
 <body>
     <div class="dashboard-container">
         <div class="header">
-            <div class="logo">🛡️ Attack Surface Profiler</div>
+            <div class="logo">
+                <img src="cleopatra.png" alt="Cleopatra Logo">
+                <span class="logo-text">Cleopatra</span>
+            </div>
             <div style="display: flex; align-items: center; gap: 20px;">
                 <div id="threat-indicator" class="pulse-animation" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(239, 68, 68, 0.2); border-radius: 6px; border: 1px solid #ef4444;">
                     <div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></div>
