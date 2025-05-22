@@ -1,0 +1,2922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attack Surface Profiler - Executive Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 50%, #0f1419 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            color: #ffffff;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            grid-template-rows: 80px 1fr;
+            height: 100vh;
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background: rgba(10, 14, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .sidebar {
+            background: rgba(15, 20, 25, 0.9);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .main-viz {
+            background: rgba(10, 14, 26, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-panel {
+            background: rgba(15, 20, 25, 0.9);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .critical { color: #ef4444; }
+        .high { color: #f97316; }
+        .medium { color: #eab308; }
+        .low { color: #22c55e; }
+        .info { color: #3b82f6; }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+            transform: scale(1.05);
+        }
+
+        .filter-btn.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .filter-btn:not(.active) {
+            opacity: 0.6;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+            opacity: 1;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .vulnerability-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .vuln-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .vuln-cve {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .vuln-score {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .network-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #network-svg {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #network-svg:active {
+            cursor: grabbing;
+        }
+
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node:hover {
+            filter: drop-shadow(0px 0px 12px rgba(255, 255, 255, 0.6));
+        }
+
+        .link {
+            stroke-opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(15, 20, 25, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            color: #ffffff;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            max-width: 250px;
+            display: none;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .spinner {
+            width: 4rem;
+            height: 4rem;
+            border: 4px solid #3b82f6;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .attack-pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                r: 8;
+                fill-opacity: 0.8;
+            }
+            50% {
+                r: 12;
+                fill-opacity: 1;
+            }
+        }
+
+        .threat-path {
+            stroke-dasharray: 5,5;
+            animation: dash 2s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -10;
+            }
+        }
+
+        .risk-glow {
+            filter: drop-shadow(0px 0px 15px currentColor);
+        }
+
+        .timeline-container {
+            margin-top: 20px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+        }
+
+        .timeline-date {
+            font-size: 10px;
+            color: #94a3b8;
+            min-width: 60px;
+        }
+
+        .timeline-event {
+            font-size: 11px;
+            margin-left: 10px;
+        }
+
+        .geo-summary {
+            margin-top: 20px;
+        }
+
+        .geo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .geo-country {
+            font-size: 12px;
+        }
+
+        .geo-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6366f1;
+        }
+
+        .executive-summary {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .summary-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .summary-label {
+            color: #94a3b8;
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        .risk-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .attack-vector-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid #6366f1;
+        }
+
+        .vector-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .vector-description {
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        .pulse-animation {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.8);
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        /* Vulnerability modal should appear above asset modal */
+        #vulnerability-modal {
+            z-index: 2100;
+        }
+
+        #asset-modal {
+            z-index: 2000;
+        }
+
+        /* Dim asset modal when vulnerability modal is open */
+        #asset-modal.dimmed .modal-content {
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #f1f5f9;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            color: #94a3b8;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #f1f5f9;
+        }
+
+        .modal-body {
+            padding: 32px;
+            color: #e2e8f0;
+        }
+
+        .vuln-details-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .vuln-cve-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .vuln-cve-header h3 {
+            margin: 0;
+            color: #f1f5f9;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .cvss-badge {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .vuln-description, .vuln-severity, .vuln-affected-assets, .vuln-recommendations, .vuln-references {
+            margin-bottom: 24px;
+        }
+
+        .vuln-description h4, .vuln-severity h4, .vuln-affected-assets h4, .vuln-recommendations h4, .vuln-references h4 {
+            color: #f1f5f9;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 8px;
+        }
+
+        .severity-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .metric {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric-label {
+            display: block;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            color: #f1f5f9;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .affected-assets-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .affected-asset {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .affected-asset:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .asset-name {
+            color: #f1f5f9;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .asset-details {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .recommendations-list, .references-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .recommendation, .reference {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .reference {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .recommendation-title, .reference-title {
+            color: #f1f5f9;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-text, .reference-text {
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            padding: 24px 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 16px 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .vuln-item {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .vuln-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+
+        /* Asset Modal Specific Styles */
+        .asset-details-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .asset-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .asset-header h3 {
+            margin: 0;
+            color: #f1f5f9;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .risk-badge {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .risk-badge.medium {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .risk-badge.low {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .risk-badge.critical {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+        }
+
+        .asset-basic-info, .asset-location-info, .asset-security-info, .asset-technical-details, .asset-recommendations {
+            margin-bottom: 24px;
+        }
+
+        .info-metrics, .security-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .security-metric {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .security-label {
+            display: block;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .security-value {
+            color: #f1f5f9;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .asset-vulnerabilities-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+
+        .asset-vuln-item {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .asset-vuln-item:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .asset-vuln-cve {
+            color: #f1f5f9;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .asset-vuln-score {
+            color: #fca5a5;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .technical-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .technical-detail {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .technical-detail-title {
+            color: #f1f5f9;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .technical-detail-value {
+            color: #e2e8f0;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+
+        .copy-success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 3000;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+            }
+
+            .vuln-details-grid, .asset-details-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .modal-body {
+                padding: 24px;
+            }
+
+            .severity-metrics, .info-metrics, .security-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .technical-details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <div class="logo">🛡️ Attack Surface Profiler</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div id="threat-indicator" class="pulse-animation" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(239, 68, 68, 0.2); border-radius: 6px; border: 1px solid #ef4444;">
+                    <div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></div>
+                    <span style="font-size: 12px; color: #ef4444; font-weight: 600;">ACTIVE THREATS DETECTED</span>
+                </div>
+                <div class="header-controls">
+                    <button class="btn" onclick="simulateAttackPath()">🎯 Attack Simulation</button>
+                    <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
+                    <button class="btn" onclick="exportReport()">📊 Export Report</button>
+                    <button class="btn danger" onclick="toggleThreatMode()">⚠️ Threat Mode</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="section-title">Filters & Controls</div>
+
+            <div class="filter-group">
+                <div class="filter-label">
+                    Risk Level
+                    <span style="float: right; font-size: 10px;">
+                        <a href="#" onclick="toggleAllFilters('risk', true)" style="color: #6366f1; text-decoration: none;">All</a> |
+                        <a href="#" onclick="toggleAllFilters('risk', false)" style="color: #6366f1; text-decoration: none;">None</a>
+                    </span>
+                </div>
+                <div class="filter-options">
+                    <button class="filter-btn active" data-filter="risk" data-value="critical">Critical</button>
+                    <button class="filter-btn active" data-filter="risk" data-value="high">High</button>
+                    <button class="filter-btn active" data-filter="risk" data-value="medium">Medium</button>
+                    <button class="filter-btn active" data-filter="risk" data-value="low">Low</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-label">
+                    Service Type
+                    <span style="float: right; font-size: 10px;">
+                        <a href="#" onclick="toggleAllFilters('service', true)" style="color: #6366f1; text-decoration: none;">All</a> |
+                        <a href="#" onclick="toggleAllFilters('service', false)" style="color: #6366f1; text-decoration: none;">None</a>
+                    </span>
+                </div>
+                <div class="filter-options" id="service-filters">
+                    <!-- Dynamic service filters will be populated here -->
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-label">
+                    Location
+                    <span style="float: right; font-size: 10px;">
+                        <a href="#" onclick="toggleAllFilters('location', true)" style="color: #6366f1; text-decoration: none;">All</a> |
+                        <a href="#" onclick="toggleAllFilters('location', false)" style="color: #6366f1; text-decoration: none;">None</a>
+                    </span>
+                </div>
+                <div class="filter-options" id="location-filters">
+                    <!-- Dynamic location filters will be populated here -->
+                </div>
+            </div>
+
+            <div class="geo-summary">
+                <div class="section-title">Geographic Distribution</div>
+                <div id="geo-breakdown"></div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="section-title">Recent Discoveries</div>
+                <div id="timeline-events"></div>
+            </div>
+        </div>
+
+        <div class="main-viz">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Loading Attack Surface Data...</div>
+            </div>
+            <div class="filter-status" id="filter-status" style="position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.8); padding: 8px 12px; border-radius: 6px; font-size: 12px; color: #ffffff; z-index: 1000; display: none;">
+                Showing <span id="visible-count">0</span> of <span id="total-count">0</span> assets
+            </div>
+            <div class="network-container">
+                <svg id="network-svg"></svg>
+            </div>
+            <div class="tooltip" id="tooltip"></div>
+        </div>
+
+        <div class="stats-panel">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-value critical" id="total-assets">0</div>
+                    <div class="kpi-label">Total Assets</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value high" id="exposed-services">0</div>
+                    <div class="kpi-label">Exposed Services</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value critical" id="critical-vulns">0</div>
+                    <div class="kpi-label">Critical Vulns</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value medium" id="risk-score">0</div>
+                    <div class="kpi-label">Risk Score</div>
+                </div>
+            </div>
+
+            <div class="section-title">Top Vulnerabilities</div>
+            <div class="vulnerability-list" id="vulnerability-list"></div>
+
+            <div class="section-title" style="margin-top: 30px;">Attack Vectors</div>
+            <div id="attack-vectors"></div>
+
+            <div class="section-title" style="margin-top: 30px;">Executive Summary</div>
+            <div id="executive-summary"></div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- Vulnerability Details Modal -->
+    <div id="vulnerability-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-vuln-title">Vulnerability Details</h2>
+                <span class="modal-close" onclick="closeVulnerabilityModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="vuln-details-grid">
+                    <div class="vuln-main-info">
+                        <div class="vuln-cve-header">
+                            <h3 id="modal-cve-id">CVE-2021-34527</h3>
+                            <span id="modal-cvss-badge" class="cvss-badge">CVSS: 9.8</span>
+                        </div>
+                        <div class="vuln-description">
+                            <h4>Description</h4>
+                            <p id="modal-vuln-description">Loading vulnerability description...</p>
+                        </div>
+                        <div class="vuln-severity">
+                            <h4>Severity Assessment</h4>
+                            <div class="severity-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">CVSS Score:</span>
+                                    <span id="modal-cvss-score" class="metric-value">9.8</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Severity:</span>
+                                    <span id="modal-severity" class="metric-value">Critical</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Verification:</span>
+                                    <span id="modal-verified" class="metric-value">Verified</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="vuln-affected-assets">
+                        <h4>Affected Assets</h4>
+                        <div id="modal-affected-assets" class="affected-assets-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+                <div class="vuln-recommendations">
+                    <h4>Remediation Recommendations</h4>
+                    <div id="modal-recommendations" class="recommendations-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+                <div class="vuln-references">
+                    <h4>References & Resources</h4>
+                    <div id="modal-references" class="references-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeVulnerabilityModal()">Close</button>
+                <button class="btn btn-primary" onclick="exportVulnerabilityReport()">Export Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asset Details Modal -->
+    <div id="asset-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-asset-title">Asset Details</h2>
+                <span class="modal-close" onclick="closeAssetModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="asset-details-grid">
+                    <div class="asset-main-info">
+                        <div class="asset-header">
+                            <h3 id="modal-asset-name">Asset Name</h3>
+                            <span id="modal-risk-badge" class="risk-badge">HIGH RISK</span>
+                        </div>
+                        <div class="asset-basic-info">
+                            <h4>Basic Information</h4>
+                            <div class="info-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">IP Address:</span>
+                                    <span id="modal-asset-ip" class="metric-value">192.168.1.1</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Service:</span>
+                                    <span id="modal-asset-service" class="metric-value">HTTPS</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Port:</span>
+                                    <span id="modal-asset-port" class="metric-value">443</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Organization:</span>
+                                    <span id="modal-asset-org" class="metric-value">Example Corp</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="asset-location-info">
+                            <h4>Location & Network</h4>
+                            <div class="info-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">Country:</span>
+                                    <span id="modal-asset-country" class="metric-value">United States</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">City:</span>
+                                    <span id="modal-asset-city" class="metric-value">New York</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">ISP:</span>
+                                    <span id="modal-asset-isp" class="metric-value">Example ISP</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">ASN:</span>
+                                    <span id="modal-asset-asn" class="metric-value">AS12345</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="asset-security-info">
+                        <h4>Security Assessment</h4>
+                        <div class="security-summary">
+                            <div class="security-metric">
+                                <span class="security-label">Risk Level:</span>
+                                <span id="modal-asset-risk" class="security-value">High</span>
+                            </div>
+                            <div class="security-metric">
+                                <span class="security-label">Vulnerabilities:</span>
+                                <span id="modal-asset-vuln-count" class="security-value">3</span>
+                            </div>
+                            <div class="security-metric">
+                                <span class="security-label">Last Scan:</span>
+                                <span id="modal-asset-last-scan" class="security-value">2025-01-14</span>
+                            </div>
+                        </div>
+                        <div id="modal-asset-vulnerabilities" class="asset-vulnerabilities-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+                <div class="asset-technical-details">
+                    <h4>Technical Details</h4>
+                    <div id="modal-technical-details" class="technical-details-grid">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+                <div class="asset-recommendations">
+                    <h4>Security Recommendations</h4>
+                    <div id="modal-asset-recommendations" class="recommendations-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAssetModal()">Close</button>
+                <button class="btn btn-info" onclick="copyAssetDetails()">Copy Details</button>
+                <button class="btn btn-primary" onclick="exportAssetReport()">Export Report</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let shodanData = [];
+        let processedData = [];
+        let currentFilters = {
+            risk: new Set(['critical', 'high', 'medium', 'low']),
+            service: new Set(),
+            location: new Set()
+        };
+        let threatMode = false;
+        let simulation;
+        let filteredData = [];
+
+        // Load and process Shodan data
+        async function loadShodanData() {
+            try {
+                // Try to fetch from file first (50 records for optimal performance)
+                try {
+                    const response = await fetch('shodan_data_50.json');
+                    if (response.ok) {
+                        shodanData = await response.json();
+                    } else {
+                        throw new Error('Fetch failed');
+                    }
+                } catch (fetchError) {
+                    // Fallback to embedded data if fetch fails
+                    console.log('Using embedded Shodan data due to CORS restrictions');
+                    shodanData = getEmbeddedShodanData();
+                }
+
+                console.log(`Loading ${shodanData.length} records...`);
+                processedData = processShodanData(shodanData);
+
+                initializeFilters();
+                initializeVisualization();
+                updateKPIs();
+                updateVulnerabilityList();
+                updateGeoBreakdown();
+                updateTimeline();
+                updateAttackVectors();
+                updateExecutiveSummary();
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading Shodan data:', error);
+                hideLoading();
+            }
+        }
+
+        // Embedded Shodan data (first 50 records for demo)
+        function getEmbeddedShodanData() {
+            return [
+                {
+                    "ip_str": "10.192.93.88",
+                    "ip": 180378968,
+                    "data": {
+                        "port": 8443,
+                        "service": "https",
+                        "product": "https",
+                        "version": "2.0.0",
+                        "timestamp": "2025-02-11T08:28:57.000000Z",
+                        "title": "Welcome to mysite.io",
+                        "server": "https/2.0.0",
+                        "content_length": 1394,
+                        "status_code": 500
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "Los Angeles",
+                        "latitude": 33.98993880904512,
+                        "longitude": -118.2594631614137,
+                        "postal_code": "35333",
+                        "area_code": 347
+                    },
+                    "org": "Vultr Holdings LLC",
+                    "isp": "Deutsche Telekom AG",
+                    "asn": "AS13906",
+                    "timestamp": "2025-01-14T20:26:51.000000Z",
+                    "hostnames": ["mail.demo.co.com"],
+                    "domains": ["webserver.com"],
+                    "transport": "tcp",
+                    "vulns": []
+                },
+                {
+                    "ip_str": "10.178.228.90",
+                    "ip": 179496026,
+                    "data": {
+                        "port": 443,
+                        "service": "https",
+                        "product": "https",
+                        "version": "3.0.0",
+                        "timestamp": "2025-03-20T16:28:45.000000Z",
+                        "title": "Welcome to service.co",
+                        "server": "https/3.0.0",
+                        "content_length": 5592,
+                        "status_code": 302
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "Los Angeles",
+                        "latitude": 34.01858309864846,
+                        "longitude": -118.25474217477566,
+                        "postal_code": "69014",
+                        "area_code": 105
+                    },
+                    "org": "DigitalOcean LLC",
+                    "isp": "Telefonica S.A.",
+                    "asn": "AS25728",
+                    "timestamp": "2025-02-22T01:30:41.000000Z",
+                    "hostnames": ["db.api.io.com"],
+                    "domains": ["mysite.io"],
+                    "transport": "tcp",
+                    "vulns": []
+                },
+                {
+                    "ip_str": "192.168.116.152",
+                    "ip": 3232265368,
+                    "data": {
+                        "port": 2222,
+                        "service": "ssh",
+                        "product": "libssh",
+                        "version": "1.0.0",
+                        "timestamp": "2025-01-18T08:40:15.000000Z",
+                        "ssh": {
+                            "type": "ssh2.0",
+                            "mac": "hmac-sha1",
+                            "kex": "ecdh-sha2-nistp256",
+                            "host_key": "ssh-rsa AAAAB3NzaC1yc2E490884"
+                        }
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "Los Angeles",
+                        "latitude": 34.07497463844752,
+                        "longitude": -118.15002620446086,
+                        "postal_code": "24073",
+                        "area_code": 231
+                    },
+                    "org": "Rackspace Hosting",
+                    "isp": "British Telecom",
+                    "asn": "AS14200",
+                    "timestamp": "2025-05-14T11:10:36.000000Z",
+                    "hostnames": ["mail.demo.co.com"],
+                    "domains": ["secure.net"],
+                    "transport": "tcp",
+                    "vulns": []
+                },
+                {
+                    "ip_str": "172.22.61.59",
+                    "ip": 2887138619,
+                    "data": {
+                        "port": 8443,
+                        "service": "https",
+                        "product": "https",
+                        "version": "2.0.0",
+                        "timestamp": "2025-01-10T12:05:03.000000Z",
+                        "title": "Welcome to demo.co",
+                        "server": "https/2.0.0",
+                        "content_length": 9709,
+                        "status_code": 403
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "Chicago",
+                        "latitude": 41.83935972051162,
+                        "longitude": -87.67050168372973,
+                        "postal_code": "94069",
+                        "area_code": 394
+                    },
+                    "org": "Rackspace Hosting",
+                    "isp": "Deutsche Telekom AG",
+                    "asn": "AS59121",
+                    "timestamp": "2025-01-03T13:58:19.000000Z",
+                    "hostnames": ["db.example.com.com"],
+                    "domains": ["test.org"],
+                    "transport": "tcp",
+                    "vulns": []
+                },
+                {
+                    "ip_str": "192.168.125.131",
+                    "ip": 3232267651,
+                    "data": {
+                        "port": 21,
+                        "service": "ftp",
+                        "product": "vsftpd",
+                        "version": "1.0.0",
+                        "timestamp": "2025-01-21T15:38:58.000000Z",
+                        "ftp": {
+                            "anonymous": false,
+                            "banner": "vsftpd 1.0.0 ready"
+                        }
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "Los Angeles",
+                        "latitude": 34.07949806216744,
+                        "longitude": -118.29933828399354,
+                        "postal_code": "61381",
+                        "area_code": 741
+                    },
+                    "org": "Rackspace Hosting",
+                    "isp": "Orange S.A.",
+                    "asn": "AS64247",
+                    "timestamp": "2025-02-13T02:09:12.000000Z",
+                    "hostnames": ["secure.demo.co.com"],
+                    "domains": ["sample.net"],
+                    "transport": "udp",
+                    "vulns": [],
+                    "tags": ["cloud"]
+                },
+                {
+                    "ip_str": "10.46.89.100",
+                    "ip": 170809700,
+                    "data": {
+                        "port": 2222,
+                        "service": "ssh",
+                        "product": "OpenSSH",
+                        "version": "8.4p1",
+                        "timestamp": "2025-03-15T06:47:37.000000Z",
+                        "ssh": {
+                            "type": "ssh2.0",
+                            "mac": "hmac-sha2-512",
+                            "kex": "ecdh-sha2-nistp256",
+                            "host_key": "ssh-rsa AAAAB3NzaC1yc2E528792"
+                        }
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "Chicago",
+                        "latitude": 41.88198625707908,
+                        "longitude": -87.55103960351954,
+                        "postal_code": "90294",
+                        "area_code": 675
+                    },
+                    "org": "Scaleway SAS",
+                    "isp": "Orange S.A.",
+                    "asn": "AS13990",
+                    "timestamp": "2025-02-12T05:16:10.000000Z",
+                    "hostnames": ["api.mysite.io.com"],
+                    "domains": ["example.com"],
+                    "transport": "udp",
+                    "vulns": [
+                        {
+                            "cve": "CVE-2020-1472",
+                            "cvss": 6.0,
+                            "summary": "Vulnerability CVE-2020-1472 detected",
+                            "verified": true
+                        },
+                        {
+                            "cve": "CVE-2021-34527",
+                            "cvss": 9.8,
+                            "summary": "Vulnerability CVE-2021-34527 detected",
+                            "verified": false
+                        }
+                    ],
+                    "tags": ["router", "cloud", "iot"]
+                },
+                {
+                    "ip_str": "192.168.49.3",
+                    "ip": 3232248067,
+                    "data": {
+                        "port": 21,
+                        "service": "ftp",
+                        "product": "FileZilla Server",
+                        "version": "1.0.0",
+                        "timestamp": "2025-02-12T14:39:50.000000Z",
+                        "ftp": {
+                            "anonymous": false,
+                            "banner": "FileZilla Server 1.0.0 ready"
+                        }
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "Chicago",
+                        "latitude": 41.864835021404915,
+                        "longitude": -87.54180103366387,
+                        "postal_code": "26104",
+                        "area_code": 601
+                    },
+                    "org": "Amazon Web Services",
+                    "isp": "Comcast Cable Communications",
+                    "asn": "AS36376",
+                    "timestamp": "2025-02-13T06:34:43.000000Z",
+                    "hostnames": ["admin.service.co.com"],
+                    "domains": ["webserver.com"],
+                    "transport": "udp",
+                    "vulns": [
+                        {
+                            "cve": "CVE-2022-0543",
+                            "cvss": 5.3,
+                            "summary": "Vulnerability CVE-2022-0543 detected",
+                            "verified": true
+                        },
+                        {
+                            "cve": "CVE-2022-30190",
+                            "cvss": 7.8,
+                            "summary": "Vulnerability CVE-2022-30190 detected",
+                            "verified": true
+                        }
+                    ],
+                    "tags": ["router"]
+                },
+                {
+                    "ip_str": "172.28.147.154",
+                    "ip": 2887553946,
+                    "data": {
+                        "port": 3306,
+                        "service": "mysql",
+                        "product": "MySQL",
+                        "version": "8.0.28",
+                        "timestamp": "2025-04-28T16:43:35.000000Z"
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "New York",
+                        "latitude": 40.78663992219833,
+                        "longitude": -73.93476143020236,
+                        "postal_code": "95501",
+                        "area_code": 861
+                    },
+                    "org": "Cloudflare Inc",
+                    "isp": "Orange S.A.",
+                    "asn": "AS36772",
+                    "timestamp": "2025-01-11T18:37:00.000000Z",
+                    "hostnames": ["api.database.org.com"],
+                    "domains": ["example.com"],
+                    "transport": "tcp",
+                    "vulns": []
+                },
+                {
+                    "ip_str": "10.55.50.182",
+                    "ip": 171389622,
+                    "data": {
+                        "port": 9200,
+                        "service": "elasticsearch",
+                        "product": "Elasticsearch",
+                        "version": "8.0.0",
+                        "timestamp": "2025-05-07T04:44:54.000000Z"
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "San Francisco",
+                        "latitude": 37.67757206365368,
+                        "longitude": -122.40346143487989,
+                        "postal_code": "98601",
+                        "area_code": 910
+                    },
+                    "org": "Rackspace Hosting",
+                    "isp": "Deutsche Telekom AG",
+                    "asn": "AS15969",
+                    "timestamp": "2025-01-30T11:27:02.000000Z",
+                    "hostnames": ["admin.database.org.com"],
+                    "domains": ["webserver.com"],
+                    "transport": "tcp",
+                    "vulns": []
+                },
+                {
+                    "ip_str": "192.168.77.46",
+                    "ip": 3232255278,
+                    "data": {
+                        "port": 6379,
+                        "service": "redis",
+                        "product": "Redis",
+                        "version": "7.0.0",
+                        "timestamp": "2025-02-20T21:22:41.000000Z"
+                    },
+                    "location": {
+                        "country_code": "US",
+                        "country_name": "United States",
+                        "city": "New York",
+                        "latitude": 40.778881316148414,
+                        "longitude": -73.96103436906103,
+                        "postal_code": "55877",
+                        "area_code": 704
+                    },
+                    "org": "Microsoft Corporation",
+                    "isp": "Verizon Business",
+                    "asn": "AS10789",
+                    "timestamp": "2025-04-30T00:05:31.000000Z",
+                    "hostnames": ["ftp.example.com.com"],
+                    "domains": ["api.io"],
+                    "transport": "tcp",
+                    "vulns": []
+                }
+            ];
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+
+
+        // Process raw Shodan data into visualization format
+        function processShodanData(data) {
+            return data.map((item, index) => {
+                const riskScore = calculateRiskScore(item);
+                const riskLevel = getRiskLevel(riskScore);
+
+                return {
+                    id: `asset-${index}`,
+                    name: item.hostnames?.[0] || `${item.ip_str}:${item.data.port}`,
+                    ip: item.ip_str,
+                    port: item.data.port,
+                    service: item.data.service,
+                    product: item.data.product,
+                    version: item.data.version,
+                    location: item.location,
+                    org: item.org,
+                    isp: item.isp,
+                    timestamp: item.data.timestamp,
+                    vulnerabilities: item.vulns || [],
+                    tags: item.tags || [],
+                    riskScore: riskScore,
+                    riskLevel: riskLevel,
+                    x: Math.random() * 800 + 100,
+                    y: Math.random() * 600 + 100
+                };
+            });
+        }
+
+        function calculateRiskScore(item) {
+            let score = 0;
+
+            // Base score for exposed service
+            score += 30;
+
+            // Port-based risk
+            const highRiskPorts = [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 1433, 3306, 3389, 5432, 6379, 8080, 8443, 9200, 27017];
+            if (highRiskPorts.includes(item.data.port)) {
+                score += 20;
+            }
+
+            // Vulnerability-based risk
+            if (item.vulns && item.vulns.length > 0) {
+                item.vulns.forEach(vuln => {
+                    score += vuln.cvss || 5;
+                });
+            }
+
+            // Service-specific risks
+            if (item.data.service === 'ftp' && item.data.ftp?.anonymous) {
+                score += 25;
+            }
+
+            if (item.data.service === 'ssh' && item.data.version && item.data.version.includes('OpenSSH')) {
+                const version = parseFloat(item.data.version.match(/\d+\.\d+/)?.[0] || '0');
+                if (version < 8.0) score += 15;
+            }
+
+            return Math.min(score, 100);
+        }
+
+        function getRiskLevel(score) {
+            if (score >= 80) return 'critical';
+            if (score >= 60) return 'high';
+            if (score >= 40) return 'medium';
+            return 'low';
+        }
+
+        // Initialize the main network visualization
+        function initializeVisualization() {
+            const svg = d3.select("#network-svg");
+            const width = svg.node().getBoundingClientRect().width;
+            const height = svg.node().getBoundingClientRect().height;
+
+            svg.selectAll("*").remove();
+
+            const container = svg.append("g");
+            const linksGroup = container.append("g").attr("class", "links");
+            const nodesGroup = container.append("g").attr("class", "nodes");
+
+            // Create zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.3, 3])
+                .on("zoom", (event) => {
+                    container.attr("transform", event.transform);
+                });
+
+            svg.call(zoom);
+
+            // Generate network links based on service relationships
+            const links = generateNetworkLinks(processedData);
+
+            // Create force simulation
+            simulation = d3.forceSimulation(processedData)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collision", d3.forceCollide().radius(25));
+
+            // Create links
+            const linkElements = linksGroup.selectAll(".link")
+                .data(links)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("stroke", "#64748b")
+                .attr("stroke-width", 1.5);
+
+            // Create nodes
+            const nodeElements = nodesGroup.selectAll(".node")
+                .data(processedData)
+                .enter().append("g")
+                .attr("class", "node")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            // Node circles
+            nodeElements.append("circle")
+                .attr("r", d => Math.max(8, Math.min(16, d.riskScore / 6)))
+                .attr("fill", d => getRiskColor(d.riskLevel))
+                .attr("stroke", "#ffffff")
+                .attr("stroke-width", 2);
+
+            // Service type indicators
+            nodeElements.append("circle")
+                .attr("r", 4)
+                .attr("fill", d => getServiceColor(d.service))
+                .attr("stroke", "#ffffff")
+                .attr("stroke-width", 1)
+                .attr("cy", -12);
+
+            // Node labels
+            nodeElements.append("text")
+                .attr("dy", 25)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#ffffff")
+                .attr("font-size", "10px")
+                .attr("font-weight", "500")
+                .text(d => d.name.length > 15 ? d.name.substring(0, 15) + '...' : d.name)
+                .style("text-shadow", "1px 1px 2px rgba(0,0,0,0.8)");
+
+            // Add tooltips
+            addTooltips(nodeElements);
+
+            // Update simulation
+            simulation.on("tick", () => {
+                linkElements
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                nodeElements.attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+
+            // Store references for later use
+            window.nodeElements = nodeElements;
+            window.linkElements = linkElements;
+            window.svgContainer = container;
+            window.zoomBehavior = zoom;
+        }
+
+        function generateNetworkLinks(nodes) {
+            const links = [];
+
+            // Create links based on service relationships and network proximity
+            nodes.forEach((node, i) => {
+                nodes.forEach((otherNode, j) => {
+                    if (i !== j) {
+                        // Link nodes with similar services or in same network
+                        const sameSubnet = node.ip.split('.').slice(0, 3).join('.') ===
+                                         otherNode.ip.split('.').slice(0, 3).join('.');
+                        const relatedServices = areServicesRelated(node.service, otherNode.service);
+
+                        if (sameSubnet || relatedServices) {
+                            if (Math.random() > 0.7) { // Add some randomness
+                                links.push({
+                                    source: node.id,
+                                    target: otherNode.id,
+                                    type: sameSubnet ? 'network' : 'service'
+                                });
+                            }
+                        }
+                    }
+                });
+            });
+
+            return links;
+        }
+
+        function areServicesRelated(service1, service2) {
+            const webServices = ['http', 'https'];
+            const dbServices = ['mysql', 'mongodb', 'elasticsearch', 'redis'];
+            const remoteServices = ['ssh', 'ftp'];
+
+            return (webServices.includes(service1) && webServices.includes(service2)) ||
+                   (dbServices.includes(service1) && dbServices.includes(service2)) ||
+                   (remoteServices.includes(service1) && remoteServices.includes(service2));
+        }
+
+        function getRiskColor(riskLevel) {
+            const colors = {
+                critical: '#ef4444',
+                high: '#f97316',
+                medium: '#eab308',
+                low: '#22c55e'
+            };
+            return colors[riskLevel] || '#64748b';
+        }
+
+        function getServiceColor(service) {
+            const colors = {
+                https: '#3b82f6',
+                http: '#06b6d4',
+                ssh: '#8b5cf6',
+                ftp: '#f59e0b',
+                mysql: '#10b981',
+                mongodb: '#059669',
+                elasticsearch: '#84cc16',
+                redis: '#ef4444'
+            };
+            return colors[service] || '#64748b';
+        }
+
+        function addTooltips(nodeElements) {
+            const tooltip = d3.select("#tooltip");
+
+            nodeElements
+                .on("mouseover", (event, d) => {
+                    let content = `
+                        <strong>${d.name}</strong><br/>
+                        <span style="color: ${getRiskColor(d.riskLevel)}">Risk: ${d.riskLevel.toUpperCase()}</span><br/>
+                        <strong>IP:</strong> ${d.ip}<br/>
+                        <strong>Service:</strong> ${d.service}:${d.port}<br/>
+                        <strong>Product:</strong> ${d.product} ${d.version}<br/>
+                        <strong>Location:</strong> ${d.location.city}, ${d.location.country_code}<br/>
+                        <strong>Organization:</strong> ${d.org}<br/>
+                    `;
+
+                    if (d.vulnerabilities.length > 0) {
+                        content += `<strong>Vulnerabilities:</strong><br/>`;
+                        d.vulnerabilities.slice(0, 3).forEach(vuln => {
+                            content += `• ${vuln.cve} (CVSS: ${vuln.cvss})<br/>`;
+                        });
+                        if (d.vulnerabilities.length > 3) {
+                            content += `• ... and ${d.vulnerabilities.length - 3} more<br/>`;
+                        }
+                    }
+
+                    content += `<br/><em style="color: #94a3b8; font-size: 11px;">Click for detailed information</em>`;
+
+                    tooltip.style("display", "block").html(content);
+                })
+                .on("mousemove", (event) => {
+                    tooltip.style("left", (event.pageX + 10) + "px")
+                           .style("top", (event.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                    tooltip.style("display", "none");
+                })
+                .on("click", (event, d) => {
+                    event.stopPropagation();
+                    tooltip.style("display", "none");
+                    showAssetDetails(d);
+                })
+                .style("cursor", "pointer");
+        }
+
+        function updateKPIs() {
+            const totalAssets = processedData.length;
+            const exposedServices = processedData.filter(d => d.port).length;
+            const criticalVulns = processedData.reduce((sum, d) =>
+                sum + d.vulnerabilities.filter(v => v.cvss >= 7).length, 0);
+            const avgRiskScore = Math.round(
+                processedData.reduce((sum, d) => sum + d.riskScore, 0) / totalAssets
+            );
+
+            document.getElementById('total-assets').textContent = totalAssets;
+            document.getElementById('exposed-services').textContent = exposedServices;
+            document.getElementById('critical-vulns').textContent = criticalVulns;
+            document.getElementById('risk-score').textContent = avgRiskScore;
+        }
+
+        function updateVulnerabilityList() {
+            const vulnList = document.getElementById('vulnerability-list');
+            const allVulns = [];
+
+            processedData.forEach(asset => {
+                asset.vulnerabilities.forEach(vuln => {
+                    allVulns.push({...vuln, asset: asset.name, ip: asset.ip});
+                });
+            });
+
+            // Sort by CVSS score
+            allVulns.sort((a, b) => (b.cvss || 0) - (a.cvss || 0));
+
+            vulnList.innerHTML = allVulns.slice(0, 10).map(vuln => `
+                <div class="vuln-item" style="border-left-color: ${getCVSSColor(vuln.cvss)}" onclick="showVulnerabilityDetails('${vuln.cve}')">
+                    <div class="vuln-cve">${vuln.cve}</div>
+                    <div class="vuln-score">CVSS: ${vuln.cvss || 'N/A'} | ${vuln.asset}</div>
+                </div>
+            `).join('');
+        }
+
+        function getCVSSColor(score) {
+            if (score >= 9) return '#ef4444';
+            if (score >= 7) return '#f97316';
+            if (score >= 4) return '#eab308';
+            return '#22c55e';
+        }
+
+        function updateGeoBreakdown() {
+            const geoBreakdown = document.getElementById('geo-breakdown');
+            const locationCounts = {};
+
+            processedData.forEach(asset => {
+                const country = asset.location.country_name;
+                locationCounts[country] = (locationCounts[country] || 0) + 1;
+            });
+
+            const sortedLocations = Object.entries(locationCounts)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5);
+
+            geoBreakdown.innerHTML = sortedLocations.map(([country, count]) => `
+                <div class="geo-item">
+                    <span class="geo-country">${country}</span>
+                    <span class="geo-count">${count}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateTimeline() {
+            const timeline = document.getElementById('timeline-events');
+            const recentEvents = processedData
+                .filter(asset => asset.vulnerabilities.length > 0)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, 8);
+
+            timeline.innerHTML = recentEvents.map(asset => `
+                <div class="timeline-item">
+                    <div class="timeline-date">${new Date(asset.timestamp).toLocaleDateString()}</div>
+                    <div class="timeline-event">
+                        ${asset.vulnerabilities.length} vuln(s) found on ${asset.name}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Drag functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // Interactive functions
+        function simulateAttackPath() {
+            resetVisualization();
+
+            // Find high-risk entry points
+            const entryPoints = processedData
+                .filter(d => d.riskScore > 70)
+                .sort((a, b) => b.riskScore - a.riskScore);
+
+            if (entryPoints.length === 0) return;
+
+            // Simulate attack progression
+            const attackPath = [entryPoints[0]];
+            let current = entryPoints[0];
+
+            // Find connected high-value targets
+            for (let i = 0; i < 3; i++) {
+                const targets = processedData.filter(d =>
+                    d.id !== current.id &&
+                    d.riskScore > 50 &&
+                    !attackPath.includes(d)
+                );
+
+                if (targets.length > 0) {
+                    const next = targets[Math.floor(Math.random() * Math.min(3, targets.length))];
+                    attackPath.push(next);
+                    current = next;
+                }
+            }
+
+            // Animate attack path
+            attackPath.forEach((node, index) => {
+                setTimeout(() => {
+                    highlightNode(node.id);
+                }, index * 1000);
+            });
+        }
+
+        function highlightNode(nodeId) {
+            window.nodeElements.filter(d => d.id === nodeId)
+                .select("circle")
+                .classed("attack-pulse", true)
+                .classed("risk-glow", true);
+        }
+
+        function resetVisualization() {
+            if (window.nodeElements) {
+                window.nodeElements.selectAll("circle")
+                    .classed("attack-pulse", false)
+                    .classed("risk-glow", false);
+            }
+
+            if (window.linkElements) {
+                window.linkElements
+                    .classed("threat-path", false)
+                    .attr("stroke", "#64748b")
+                    .attr("stroke-width", 1.5);
+            }
+        }
+
+        function toggleThreatMode() {
+            threatMode = !threatMode;
+
+            if (threatMode) {
+                // Highlight high-risk assets
+                window.nodeElements.filter(d => d.riskLevel === 'critical' || d.riskLevel === 'high')
+                    .select("circle")
+                    .classed("risk-glow", true);
+
+                // Highlight risky connections
+                window.linkElements
+                    .attr("stroke", "#f97316")
+                    .attr("stroke-width", 2);
+            } else {
+                resetVisualization();
+            }
+        }
+
+        function refreshData() {
+            document.getElementById('loading').style.display = 'block';
+            setTimeout(() => {
+                loadShodanData();
+            }, 1000);
+        }
+
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                summary: {
+                    totalAssets: processedData.length,
+                    criticalAssets: processedData.filter(d => d.riskLevel === 'critical').length,
+                    totalVulnerabilities: processedData.reduce((sum, d) => sum + d.vulnerabilities.length, 0)
+                },
+                assets: processedData
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attack_surface_report_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize filters with all available values
+        function initializeFilters() {
+            if (processedData.length === 0) return;
+
+            // Get unique services and locations from data
+            const services = [...new Set(processedData.map(d => d.service))].sort();
+            const locations = [...new Set(processedData.map(d => d.location.country_code))].sort();
+
+            // Initialize filter sets
+            currentFilters.service = new Set(services);
+            currentFilters.location = new Set(locations);
+
+            // Create dynamic service filter buttons
+            const serviceFilters = document.getElementById('service-filters');
+            serviceFilters.innerHTML = services.map(service =>
+                `<button class="filter-btn active" data-filter="service" data-value="${service}">
+                    ${service.toUpperCase()}
+                </button>`
+            ).join('');
+
+            // Create dynamic location filter buttons
+            const locationFilters = document.getElementById('location-filters');
+            const locationNames = {
+                'US': 'United States',
+                'CA': 'Canada',
+                'GB': 'United Kingdom',
+                'DE': 'Germany',
+                'FR': 'France',
+                'JP': 'Japan',
+                'CN': 'China',
+                'RU': 'Russia'
+            };
+
+            locationFilters.innerHTML = locations.map(location =>
+                `<button class="filter-btn active" data-filter="location" data-value="${location}">
+                    ${locationNames[location] || location}
+                </button>`
+            ).join('');
+
+            // Re-attach event listeners to new buttons
+            attachFilterEventListeners();
+        }
+
+        function attachFilterEventListeners() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const filterType = e.target.dataset.filter;
+                    const filterValue = e.target.dataset.value;
+
+                    // Toggle filter state
+                    if (e.target.classList.contains('active')) {
+                        e.target.classList.remove('active');
+                        currentFilters[filterType].delete(filterValue);
+                    } else {
+                        e.target.classList.add('active');
+                        currentFilters[filterType].add(filterValue);
+                    }
+
+                    applyFilters();
+                });
+            });
+        }
+
+        function toggleAllFilters(filterType, selectAll) {
+            const buttons = document.querySelectorAll(`[data-filter="${filterType}"]`);
+
+            if (selectAll) {
+                // Select all
+                buttons.forEach(btn => {
+                    btn.classList.add('active');
+                    currentFilters[filterType].add(btn.dataset.value);
+                });
+            } else {
+                // Deselect all
+                buttons.forEach(btn => {
+                    btn.classList.remove('active');
+                    currentFilters[filterType].delete(btn.dataset.value);
+                });
+            }
+
+            applyFilters();
+        }
+
+        // Filter functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial filter event listeners for risk level buttons
+            attachFilterEventListeners();
+
+            // Load data on page load
+            loadShodanData();
+        });
+
+        function applyFilters() {
+            if (!window.nodeElements) return;
+
+            // Filter the data and update visualization
+            filteredData = processedData.filter(d => {
+                const riskMatch = currentFilters.risk.has(d.riskLevel);
+                const serviceMatch = currentFilters.service.has(d.service);
+                const locationMatch = currentFilters.location.has(d.location.country_code);
+
+                return riskMatch && serviceMatch && locationMatch;
+            });
+
+            // Update node visibility
+            window.nodeElements.style('opacity', d => {
+                const riskMatch = currentFilters.risk.has(d.riskLevel);
+                const serviceMatch = currentFilters.service.has(d.service);
+                const locationMatch = currentFilters.location.has(d.location.country_code);
+
+                return (riskMatch && serviceMatch && locationMatch) ? 1 : 0.1;
+            });
+
+            // Update link visibility
+            if (window.linkElements) {
+                window.linkElements.style('opacity', l => {
+                    const sourceVisible = currentFilters.risk.has(l.source.riskLevel) &&
+                                        currentFilters.service.has(l.source.service) &&
+                                        currentFilters.location.has(l.source.location.country_code);
+                    const targetVisible = currentFilters.risk.has(l.target.riskLevel) &&
+                                        currentFilters.service.has(l.target.service) &&
+                                        currentFilters.location.has(l.target.location.country_code);
+
+                    return (sourceVisible && targetVisible) ? 0.3 : 0.05;
+                });
+            }
+
+            // Update statistics
+            updateFilteredStats();
+        }
+
+        function updateFilteredStats() {
+            // Update the stats cards with filtered data
+            const totalAssets = filteredData.length;
+            const exposedServices = filteredData.filter(d => d.service !== 'unknown').length;
+            const criticalVulns = filteredData.reduce((sum, d) =>
+                sum + d.vulnerabilities.filter(v => v.cvss >= 9).length, 0);
+            const riskScore = Math.round(filteredData.reduce((sum, d) => {
+                const riskValues = { critical: 10, high: 7, medium: 4, low: 1 };
+                return sum + (riskValues[d.riskLevel] || 0);
+            }, 0) / Math.max(totalAssets, 1));
+
+            // Update the display
+            const statCards = document.querySelectorAll('.kpi-card .kpi-value');
+            if (statCards.length >= 4) {
+                statCards[0].textContent = totalAssets;
+                statCards[1].textContent = exposedServices;
+                statCards[2].textContent = criticalVulns;
+                statCards[3].textContent = riskScore;
+            }
+
+            // Update filter status indicator
+            const filterStatus = document.getElementById('filter-status');
+            const visibleCount = document.getElementById('visible-count');
+            const totalCount = document.getElementById('total-count');
+
+            if (filterStatus && visibleCount && totalCount) {
+                visibleCount.textContent = totalAssets;
+                totalCount.textContent = processedData.length;
+                filterStatus.style.display = 'block';
+
+                // Change color based on filter ratio
+                const ratio = totalAssets / processedData.length;
+                if (ratio < 0.3) {
+                    filterStatus.style.background = 'rgba(239, 68, 68, 0.9)'; // Red for heavy filtering
+                } else if (ratio < 0.7) {
+                    filterStatus.style.background = 'rgba(245, 158, 11, 0.9)'; // Orange for moderate filtering
+                } else {
+                    filterStatus.style.background = 'rgba(0, 0, 0, 0.8)'; // Default for light filtering
+                }
+            }
+        }
+
+        function updateAttackVectors() {
+            const attackVectors = document.getElementById('attack-vectors');
+
+            // Analyze data for common attack vectors
+            const vectors = [];
+
+            // Check for exposed SSH services
+            const sshAssets = processedData.filter(d => d.service === 'ssh');
+            if (sshAssets.length > 0) {
+                vectors.push({
+                    title: 'SSH Brute Force',
+                    description: `${sshAssets.length} SSH services exposed. Risk of credential attacks.`,
+                    risk: 'high'
+                });
+            }
+
+            // Check for web services with vulnerabilities
+            const webVulns = processedData.filter(d =>
+                (d.service === 'http' || d.service === 'https') && d.vulnerabilities.length > 0
+            );
+            if (webVulns.length > 0) {
+                vectors.push({
+                    title: 'Web Application Exploits',
+                    description: `${webVulns.length} web services with known vulnerabilities.`,
+                    risk: 'critical'
+                });
+            }
+
+            // Check for database services
+            const dbServices = processedData.filter(d =>
+                ['mysql', 'mongodb', 'redis', 'elasticsearch'].includes(d.service)
+            );
+            if (dbServices.length > 0) {
+                vectors.push({
+                    title: 'Database Exposure',
+                    description: `${dbServices.length} database services potentially accessible.`,
+                    risk: 'critical'
+                });
+            }
+
+            // Check for FTP services
+            const ftpServices = processedData.filter(d => d.service === 'ftp');
+            if (ftpServices.length > 0) {
+                vectors.push({
+                    title: 'File Transfer Risks',
+                    description: `${ftpServices.length} FTP services may allow data exfiltration.`,
+                    risk: 'medium'
+                });
+            }
+
+            attackVectors.innerHTML = vectors.map(vector => `
+                <div class="attack-vector-item">
+                    <div class="vector-title">
+                        <span class="risk-indicator" style="background-color: ${getRiskColor(vector.risk)}"></span>
+                        ${vector.title}
+                    </div>
+                    <div class="vector-description">${vector.description}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateExecutiveSummary() {
+            const summary = document.getElementById('executive-summary');
+
+            // Calculate executive metrics
+            const totalAssets = processedData.length;
+            const criticalAssets = processedData.filter(d => d.riskLevel === 'critical').length;
+            const highRiskAssets = processedData.filter(d => d.riskLevel === 'high').length;
+            const totalVulns = processedData.reduce((sum, d) => sum + d.vulnerabilities.length, 0);
+            const criticalVulns = processedData.reduce((sum, d) =>
+                sum + d.vulnerabilities.filter(v => v.cvss >= 9).length, 0);
+
+            // Calculate exposure percentage
+            const exposurePercentage = Math.round((criticalAssets + highRiskAssets) / totalAssets * 100);
+
+            // Determine overall risk level
+            let overallRisk = 'low';
+            let riskColor = '#22c55e';
+            if (exposurePercentage > 60) {
+                overallRisk = 'critical';
+                riskColor = '#ef4444';
+            } else if (exposurePercentage > 40) {
+                overallRisk = 'high';
+                riskColor = '#f97316';
+            } else if (exposurePercentage > 20) {
+                overallRisk = 'medium';
+                riskColor = '#eab308';
+            }
+
+            // Generate recommendations
+            let recommendations = [];
+            if (criticalVulns > 0) {
+                recommendations.push('Immediate patching required for critical vulnerabilities');
+            }
+            if (criticalAssets > 0) {
+                recommendations.push('Review and secure critical asset exposure');
+            }
+            if (processedData.filter(d => d.service === 'ftp').length > 0) {
+                recommendations.push('Consider replacing FTP with secure alternatives');
+            }
+
+            summary.innerHTML = `
+                <div class="executive-summary">
+                    <div class="summary-metric">
+                        <span class="summary-label">Overall Risk Level</span>
+                        <span class="summary-value" style="color: ${riskColor}">
+                            ${overallRisk.toUpperCase()}
+                        </span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="summary-label">Attack Surface Exposure</span>
+                        <span class="summary-value" style="color: ${riskColor}">
+                            ${exposurePercentage}%
+                        </span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="summary-label">Critical Vulnerabilities</span>
+                        <span class="summary-value critical">
+                            ${criticalVulns}
+                        </span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="summary-label">Immediate Actions Required</span>
+                        <span class="summary-value critical">
+                            ${recommendations.length}
+                        </span>
+                    </div>
+                </div>
+                ${recommendations.length > 0 ? `
+                    <div style="margin-top: 15px;">
+                        <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #ffffff;">
+                            Priority Actions:
+                        </div>
+                        ${recommendations.slice(0, 3).map(rec => `
+                            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px; padding-left: 8px; border-left: 2px solid #ef4444;">
+                                • ${rec}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Vulnerability Modal Functions
+        function showVulnerabilityDetails(cveId) {
+            const modal = document.getElementById('vulnerability-modal');
+            const assetModal = document.getElementById('asset-modal');
+            const vuln = findVulnerabilityByCVE(cveId);
+
+            if (!vuln) {
+                console.error('Vulnerability not found:', cveId);
+                return;
+            }
+
+            // Populate modal with vulnerability data
+            populateVulnerabilityModal(vuln);
+
+            // Dim asset modal if it's open
+            if (assetModal.style.display === 'block') {
+                assetModal.classList.add('dimmed');
+            }
+
+            // Show modal with higher z-index
+            modal.style.display = 'block';
+            modal.style.zIndex = '2100';
+
+            // Add click outside to close
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeVulnerabilityModal();
+                }
+            };
+        }
+
+        function findVulnerabilityByCVE(cveId) {
+            for (const asset of processedData) {
+                for (const vuln of asset.vulnerabilities) {
+                    if (vuln.cve === cveId) {
+                        return {
+                            ...vuln,
+                            affectedAssets: getAffectedAssets(cveId)
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function getAffectedAssets(cveId) {
+            const affected = [];
+            processedData.forEach(asset => {
+                const hasVuln = asset.vulnerabilities.some(v => v.cve === cveId);
+                if (hasVuln) {
+                    affected.push(asset);
+                }
+            });
+            return affected;
+        }
+
+        function populateVulnerabilityModal(vuln) {
+            // Basic info
+            document.getElementById('modal-cve-id').textContent = vuln.cve;
+            document.getElementById('modal-cvss-badge').textContent = `CVSS: ${vuln.cvss || 'N/A'}`;
+            document.getElementById('modal-cvss-score').textContent = vuln.cvss || 'N/A';
+            document.getElementById('modal-severity').textContent = getSeverityLevel(vuln.cvss);
+            document.getElementById('modal-verified').textContent = vuln.verified ? 'Verified' : 'Unverified';
+
+            // Description
+            document.getElementById('modal-vuln-description').textContent =
+                getVulnerabilityDescription(vuln.cve) || vuln.summary || 'No description available.';
+
+            // Affected assets
+            const affectedAssetsContainer = document.getElementById('modal-affected-assets');
+            affectedAssetsContainer.innerHTML = vuln.affectedAssets.map(asset => `
+                <div class="affected-asset">
+                    <div class="asset-name">${asset.name}</div>
+                    <div class="asset-details">
+                        IP: ${asset.ip} | Service: ${asset.service}:${asset.port} |
+                        Location: ${asset.location.city}, ${asset.location.country_code}
+                    </div>
+                </div>
+            `).join('');
+
+            // Recommendations
+            const recommendations = getVulnerabilityRecommendations(vuln.cve);
+            const recommendationsContainer = document.getElementById('modal-recommendations');
+            recommendationsContainer.innerHTML = recommendations.map(rec => `
+                <div class="recommendation">
+                    <div class="recommendation-title">${rec.title}</div>
+                    <div class="recommendation-text">${rec.text}</div>
+                </div>
+            `).join('');
+
+            // References
+            const references = getVulnerabilityReferences(vuln.cve);
+            const referencesContainer = document.getElementById('modal-references');
+            referencesContainer.innerHTML = references.map(ref => `
+                <div class="reference">
+                    <div class="reference-title">${ref.title}</div>
+                    <div class="reference-text">
+                        <a href="${ref.url}" target="_blank" style="color: #3b82f6; text-decoration: none;">
+                            ${ref.url}
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update CVSS badge color
+            const badge = document.getElementById('modal-cvss-badge');
+            badge.style.background = `linear-gradient(135deg, ${getCVSSColor(vuln.cvss)} 0%, ${getCVSSColor(vuln.cvss)}dd 100%)`;
+        }
+
+        function getSeverityLevel(cvss) {
+            if (!cvss) return 'Unknown';
+            if (cvss >= 9.0) return 'Critical';
+            if (cvss >= 7.0) return 'High';
+            if (cvss >= 4.0) return 'Medium';
+            return 'Low';
+        }
+
+        function getVulnerabilityDescription(cveId) {
+            // Enhanced descriptions for common CVEs
+            const descriptions = {
+                'CVE-2021-34527': 'Windows Print Spooler Remote Code Execution Vulnerability (PrintNightmare). A remote code execution vulnerability exists when the Windows Print Spooler service improperly performs privileged file operations.',
+                'CVE-2020-1472': 'Netlogon Elevation of Privilege Vulnerability (Zerologon). An elevation of privilege vulnerability exists in Netlogon when an attacker establishes a vulnerable Netlogon secure channel connection.',
+                'CVE-2022-30190': 'Microsoft Windows Support Diagnostic Tool (MSDT) Remote Code Execution Vulnerability. A remote code execution vulnerability exists when MSDT is called using the URL protocol from a calling application.',
+                'CVE-2022-0543': 'Redis Lua Debugger Remote Code Execution. A vulnerability in Redis allows remote attackers to execute arbitrary code via the Lua debugger.',
+                'CVE-2021-45046': 'Apache Log4j2 JNDI features do not protect against attacker controlled LDAP and other JNDI related endpoints.',
+                'CVE-2021-32675': 'Redis Zip List Integer Overflow. An integer overflow bug in Redis can be exploited to corrupt the heap and potentially result in remote code execution.',
+                'CVE-2021-26855': 'Microsoft Exchange Server Remote Code Execution Vulnerability. A remote code execution vulnerability exists in Microsoft Exchange Server when the server fails to properly validate input.',
+                'CVE-2021-22145': 'Elasticsearch Remote Code Execution. A remote code execution vulnerability in Elasticsearch allows attackers to execute arbitrary code.'
+            };
+            return descriptions[cveId];
+        }
+
+        function getVulnerabilityRecommendations(cveId) {
+            const recommendations = {
+                'CVE-2021-34527': [
+                    {
+                        title: 'Immediate Action Required',
+                        text: 'Disable the Print Spooler service on Domain Controllers and systems that do not require printing functionality. Apply Microsoft security updates immediately.'
+                    },
+                    {
+                        title: 'Network Segmentation',
+                        text: 'Implement network segmentation to limit exposure of print servers and restrict RPC traffic to trusted networks only.'
+                    },
+                    {
+                        title: 'Monitoring',
+                        text: 'Monitor for unusual print spooler activity and implement logging for all print-related operations.'
+                    }
+                ],
+                'CVE-2020-1472': [
+                    {
+                        title: 'Critical Patch Required',
+                        text: 'Apply Microsoft KB4557222 and subsequent updates immediately. This vulnerability allows complete domain compromise.'
+                    },
+                    {
+                        title: 'Domain Controller Hardening',
+                        text: 'Enable enforcement mode for Netlogon secure channel connections and monitor for authentication anomalies.'
+                    }
+                ],
+                'CVE-2022-30190': [
+                    {
+                        title: 'Disable MSDT URL Protocol',
+                        text: 'Disable the MSDT URL protocol handler in the Windows registry to prevent exploitation via malicious documents.'
+                    },
+                    {
+                        title: 'Email Security',
+                        text: 'Implement advanced email filtering to block malicious Office documents and educate users about phishing attacks.'
+                    }
+                ]
+            };
+
+            return recommendations[cveId] || [
+                {
+                    title: 'General Remediation',
+                    text: 'Apply the latest security patches from the vendor. Monitor vendor security advisories for updates.'
+                },
+                {
+                    title: 'Risk Mitigation',
+                    text: 'Implement network segmentation, access controls, and monitoring to reduce exposure and detect potential exploitation.'
+                }
+            ];
+        }
+
+        function getVulnerabilityReferences(cveId) {
+            return [
+                {
+                    title: 'NIST National Vulnerability Database',
+                    url: `https://nvd.nist.gov/vuln/detail/${cveId}`
+                },
+                {
+                    title: 'MITRE CVE Details',
+                    url: `https://cve.mitre.org/cgi-bin/cvename.cgi?name=${cveId}`
+                },
+                {
+                    title: 'CVE Details Database',
+                    url: `https://www.cvedetails.com/cve/${cveId}/`
+                }
+            ];
+        }
+
+        function closeVulnerabilityModal() {
+            const modal = document.getElementById('vulnerability-modal');
+            const assetModal = document.getElementById('asset-modal');
+
+            modal.style.display = 'none';
+            // Reset z-index for next use
+            modal.style.zIndex = '2100';
+
+            // Remove dimming from asset modal
+            assetModal.classList.remove('dimmed');
+        }
+
+        function exportVulnerabilityReport() {
+            const cveId = document.getElementById('modal-cve-id').textContent;
+            const vuln = findVulnerabilityByCVE(cveId);
+
+            if (!vuln) return;
+
+            const report = {
+                vulnerability: {
+                    cve: vuln.cve,
+                    cvss: vuln.cvss,
+                    severity: getSeverityLevel(vuln.cvss),
+                    verified: vuln.verified,
+                    description: getVulnerabilityDescription(vuln.cve) || vuln.summary
+                },
+                affectedAssets: vuln.affectedAssets.map(asset => ({
+                    name: asset.name,
+                    ip: asset.ip,
+                    service: `${asset.service}:${asset.port}`,
+                    location: `${asset.location.city}, ${asset.location.country_code}`,
+                    organization: asset.org
+                })),
+                recommendations: getVulnerabilityRecommendations(vuln.cve),
+                references: getVulnerabilityReferences(vuln.cve),
+                generatedAt: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vulnerability-report-${vuln.cve}-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Asset Modal Functions
+        function showAssetDetails(asset) {
+            const modal = document.getElementById('asset-modal');
+
+            // Populate modal with asset data
+            populateAssetModal(asset);
+
+            // Show modal
+            modal.style.display = 'block';
+
+            // Add click outside to close
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeAssetModal();
+                }
+            };
+        }
+
+        function populateAssetModal(asset) {
+            // Basic info
+            document.getElementById('modal-asset-name').textContent = asset.name;
+            document.getElementById('modal-asset-ip').textContent = asset.ip;
+            document.getElementById('modal-asset-service').textContent = asset.service.toUpperCase();
+            document.getElementById('modal-asset-port').textContent = asset.port;
+            document.getElementById('modal-asset-org').textContent = asset.org;
+
+            // Location info
+            document.getElementById('modal-asset-country').textContent = asset.location.country_name;
+            document.getElementById('modal-asset-city').textContent = asset.location.city;
+            document.getElementById('modal-asset-isp').textContent = asset.isp;
+            document.getElementById('modal-asset-asn').textContent = asset.asn;
+
+            // Security info
+            document.getElementById('modal-asset-risk').textContent = asset.riskLevel.charAt(0).toUpperCase() + asset.riskLevel.slice(1);
+            document.getElementById('modal-asset-vuln-count').textContent = asset.vulnerabilities.length;
+            document.getElementById('modal-asset-last-scan').textContent = new Date(asset.timestamp).toLocaleDateString();
+
+            // Risk badge
+            const riskBadge = document.getElementById('modal-risk-badge');
+            riskBadge.textContent = `${asset.riskLevel.toUpperCase()} RISK`;
+            riskBadge.className = `risk-badge ${asset.riskLevel}`;
+
+            // Vulnerabilities list
+            const vulnContainer = document.getElementById('modal-asset-vulnerabilities');
+            if (asset.vulnerabilities.length > 0) {
+                vulnContainer.innerHTML = asset.vulnerabilities.map(vuln => `
+                    <div class="asset-vuln-item" onclick="showVulnerabilityDetails('${vuln.cve}')">
+                        <div class="asset-vuln-cve">${vuln.cve}</div>
+                        <div class="asset-vuln-score">CVSS: ${vuln.cvss || 'N/A'} | ${vuln.verified ? 'Verified' : 'Unverified'}</div>
+                    </div>
+                `).join('');
+            } else {
+                vulnContainer.innerHTML = '<div style="color: #94a3b8; font-style: italic;">No vulnerabilities detected</div>';
+            }
+
+            // Technical details
+            const technicalDetails = document.getElementById('modal-technical-details');
+            const details = [
+                { title: 'Product', value: `${asset.product} ${asset.version}` },
+                { title: 'Transport Protocol', value: asset.transport?.toUpperCase() || 'TCP' },
+                { title: 'Hostnames', value: asset.hostnames?.join(', ') || 'None' },
+                { title: 'Domains', value: asset.domains?.join(', ') || 'None' },
+                { title: 'Tags', value: asset.tags?.join(', ') || 'None' },
+                { title: 'Coordinates', value: `${asset.location.latitude.toFixed(4)}, ${asset.location.longitude.toFixed(4)}` }
+            ];
+
+            technicalDetails.innerHTML = details.map(detail => `
+                <div class="technical-detail">
+                    <div class="technical-detail-title">${detail.title}</div>
+                    <div class="technical-detail-value">${detail.value}</div>
+                </div>
+            `).join('');
+
+            // Security recommendations
+            const recommendations = getAssetRecommendations(asset);
+            const recommendationsContainer = document.getElementById('modal-asset-recommendations');
+            recommendationsContainer.innerHTML = recommendations.map(rec => `
+                <div class="recommendation">
+                    <div class="recommendation-title">${rec.title}</div>
+                    <div class="recommendation-text">${rec.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function getAssetRecommendations(asset) {
+            const recommendations = [];
+
+            // Service-specific recommendations
+            if (asset.service === 'ssh') {
+                recommendations.push({
+                    title: 'SSH Security Hardening',
+                    text: 'Disable password authentication, use key-based authentication only, change default port, and implement fail2ban protection.'
+                });
+            }
+
+            if (asset.service === 'ftp') {
+                recommendations.push({
+                    title: 'Replace FTP with Secure Alternative',
+                    text: 'Consider migrating to SFTP or FTPS for encrypted file transfers. FTP transmits credentials in plain text.'
+                });
+            }
+
+            if (asset.service === 'http') {
+                recommendations.push({
+                    title: 'Implement HTTPS',
+                    text: 'Migrate to HTTPS with valid SSL/TLS certificates to encrypt data in transit and improve security posture.'
+                });
+            }
+
+            if (['mysql', 'mongodb', 'redis', 'elasticsearch'].includes(asset.service)) {
+                recommendations.push({
+                    title: 'Database Security',
+                    text: 'Ensure database is not publicly accessible, implement strong authentication, and enable encryption at rest and in transit.'
+                });
+            }
+
+            // Risk-based recommendations
+            if (asset.riskLevel === 'critical' || asset.riskLevel === 'high') {
+                recommendations.push({
+                    title: 'Immediate Security Review',
+                    text: 'This asset requires immediate security assessment due to high risk level. Consider network segmentation and enhanced monitoring.'
+                });
+            }
+
+            // Vulnerability-based recommendations
+            if (asset.vulnerabilities.length > 0) {
+                recommendations.push({
+                    title: 'Vulnerability Remediation',
+                    text: `${asset.vulnerabilities.length} vulnerabilities detected. Prioritize patching based on CVSS scores and apply security updates immediately.`
+                });
+            }
+
+            // Default recommendation if none specific
+            if (recommendations.length === 0) {
+                recommendations.push({
+                    title: 'General Security Practices',
+                    text: 'Implement regular security updates, monitor for unusual activity, and ensure proper access controls are in place.'
+                });
+            }
+
+            return recommendations;
+        }
+
+        function closeAssetModal() {
+            document.getElementById('asset-modal').style.display = 'none';
+        }
+
+        function copyAssetDetails() {
+            const asset = getCurrentAssetFromModal();
+            const details = formatAssetDetailsForCopy(asset);
+
+            navigator.clipboard.writeText(details).then(() => {
+                showCopySuccess();
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = details;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showCopySuccess();
+            });
+        }
+
+        function getCurrentAssetFromModal() {
+            // Extract asset data from modal fields
+            return {
+                name: document.getElementById('modal-asset-name').textContent,
+                ip: document.getElementById('modal-asset-ip').textContent,
+                service: document.getElementById('modal-asset-service').textContent,
+                port: document.getElementById('modal-asset-port').textContent,
+                org: document.getElementById('modal-asset-org').textContent,
+                country: document.getElementById('modal-asset-country').textContent,
+                city: document.getElementById('modal-asset-city').textContent,
+                isp: document.getElementById('modal-asset-isp').textContent,
+                asn: document.getElementById('modal-asset-asn').textContent,
+                riskLevel: document.getElementById('modal-asset-risk').textContent,
+                vulnCount: document.getElementById('modal-asset-vuln-count').textContent,
+                lastScan: document.getElementById('modal-asset-last-scan').textContent
+            };
+        }
+
+        function formatAssetDetailsForCopy(asset) {
+            return `ASSET SECURITY REPORT
+========================================
+
+Asset Information:
+- Name: ${asset.name}
+- IP Address: ${asset.ip}
+- Service: ${asset.service}:${asset.port}
+- Organization: ${asset.org}
+
+Location & Network:
+- Country: ${asset.country}
+- City: ${asset.city}
+- ISP: ${asset.isp}
+- ASN: ${asset.asn}
+
+Security Assessment:
+- Risk Level: ${asset.riskLevel}
+- Vulnerabilities: ${asset.vulnCount}
+- Last Scan: ${asset.lastScan}
+
+Generated: ${new Date().toLocaleString()}
+Source: Attack Surface Management Dashboard`;
+        }
+
+        function exportAssetReport() {
+            const asset = getCurrentAssetFromModal();
+            const report = {
+                asset: asset,
+                technicalDetails: extractTechnicalDetails(),
+                vulnerabilities: extractVulnerabilities(),
+                recommendations: extractRecommendations(),
+                generatedAt: new Date().toISOString(),
+                reportType: 'Asset Security Assessment'
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `asset-report-${asset.ip.replace(/\./g, '-')}-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function extractTechnicalDetails() {
+            const details = {};
+            document.querySelectorAll('#modal-technical-details .technical-detail').forEach(detail => {
+                const title = detail.querySelector('.technical-detail-title').textContent;
+                const value = detail.querySelector('.technical-detail-value').textContent;
+                details[title] = value;
+            });
+            return details;
+        }
+
+        function extractVulnerabilities() {
+            const vulns = [];
+            document.querySelectorAll('#modal-asset-vulnerabilities .asset-vuln-item').forEach(item => {
+                const cve = item.querySelector('.asset-vuln-cve').textContent;
+                const score = item.querySelector('.asset-vuln-score').textContent;
+                vulns.push({ cve, score });
+            });
+            return vulns;
+        }
+
+        function extractRecommendations() {
+            const recs = [];
+            document.querySelectorAll('#modal-asset-recommendations .recommendation').forEach(rec => {
+                const title = rec.querySelector('.recommendation-title').textContent;
+                const text = rec.querySelector('.recommendation-text').textContent;
+                recs.push({ title, text });
+            });
+            return recs;
+        }
+
+        function showCopySuccess() {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'copy-success';
+            successDiv.textContent = '✓ Asset details copied to clipboard';
+            document.body.appendChild(successDiv);
+
+            setTimeout(() => {
+                document.body.removeChild(successDiv);
+            }, 3000);
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeVulnerabilityModal();
+                closeAssetModal();
+            }
+        });
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadShodanData();
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            if (simulation) {
+                const svg = d3.select("#network-svg");
+                const width = svg.node().getBoundingClientRect().width;
+                const height = svg.node().getBoundingClientRect().height;
+
+                simulation.force("center", d3.forceCenter(width / 2, height / 2));
+                simulation.alpha(0.3).restart();
+            }
+        });
+    </script>
+</body>
+</html>
