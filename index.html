@@ -8,6 +8,198 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
+        :root {
+            --color-background-deep-dark: #0a0e1a;
+            --color-background-dark-accent: #1a1f3a;
+            --color-background-dark-alt: #0f1419;
+            --color-text-primary: #ffffff;
+            --color-text-button: white;
+            --color-text-secondary: #94a3b8;
+            --color-text-modal-primary: #f1f5f9;
+            --color-text-modal-secondary: #e2e8f0;
+            --color-text-danger-light: #fca5a5;
+
+            --color-background-glass-light: rgba(255, 255, 255, 0.05);
+            --color-background-glass-hover: rgba(255, 255, 255, 0.08);
+            --color-background-glass-light-hover: rgba(255, 255, 255, 0.15);
+            --color-background-dark-overlay: rgba(0, 0, 0, 0.2);
+
+            --color-header-background: rgba(10, 14, 26, 0.95);
+            --color-sidebar-background: rgba(15, 20, 25, 0.9);
+            --color-main-viz-background: rgba(10, 14, 26, 0.5);
+            --color-tooltip-background: rgba(15, 20, 25, 0.95);
+            --color-filter-status-background: rgba(0, 0, 0, 0.8);
+
+
+            --color-border-light: rgba(255, 255, 255, 0.1);
+            --color-border-medium: rgba(255, 255, 255, 0.2);
+
+            --color-accent-primary: #6366f1;
+            --color-accent-secondary: #8b5cf6;
+            --color-accent-glow-soft: rgba(99, 102, 241, 0.5);
+            --color-accent-glow-strong: rgba(99, 102, 241, 0.8);
+            --color-accent-shadow-medium: rgba(99, 102, 241, 0.3);
+            --color-accent-shadow-strong: rgba(99, 102, 241, 0.4);
+
+            --color-danger-primary: #ef4444;
+            --color-danger-secondary: #dc2626;
+            --color-danger-dark: #991b1b;
+            --color-danger-shadow-medium: rgba(239, 68, 68, 0.3);
+            --color-danger-shadow-strong: rgba(220, 38, 38, 0.4);
+            --color-danger-background-light: rgba(239, 68, 68, 0.2);
+            --color-danger-background-strong: rgba(239, 68, 68, 0.9);
+            --color-danger-background-faded: rgba(239, 68, 68, 0.1);
+            --color-danger-background-faded-hover: rgba(239, 68, 68, 0.2);
+            --color-danger-border-faded: rgba(239, 68, 68, 0.3);
+
+            --color-warning-primary: #f97316;
+            --color-warning-secondary: #eab308;
+            --color-warning-medium-dark: #f59e0b;
+            --color-warning-dark: #d97706;
+            --color-warning-shadow-medium: rgba(245, 158, 11, 0.3);
+            --color-warning-background-strong: rgba(245, 158, 11, 0.9);
+
+            --color-success-primary: #22c55e;
+            --color-success-medium-dark: #10b981;
+            --color-success-dark: #059669;
+            --color-success-shadow-medium: rgba(16, 185, 129, 0.3);
+            --color-success-background-faded: rgba(34, 197, 94, 0.1);
+            --color-success-border-faded: rgba(34, 197, 94, 0.3);
+
+            --color-info-primary: #3b82f6;
+            --color-info-secondary: #2563eb;
+            --color-info-shadow-strong: rgba(59, 130, 246, 0.4);
+            --color-info-background-faded: rgba(59, 130, 246, 0.1);
+            --color-info-border-faded: rgba(59, 130, 246, 0.3);
+            --color-info-shadow-medium: rgba(59, 130, 246, 0.3); /* Used by btn-primary */
+
+            --color-cyan-primary: #06b6d4;
+            --color-cyan-secondary: #0891b2;
+            --color-cyan-shadow-medium: rgba(6, 182, 212, 0.3);
+            --color-cyan-shadow-strong: rgba(6, 182, 212, 0.4);
+            --color-elasticsearch-temp: #84cc16; /* Temporary, as it wasn't in the list but used in JS */
+
+
+            --color-shimmer-highlight: rgba(255, 255, 255, 0.3);
+            --color-node-hover-glow: rgba(255, 255, 255, 0.6);
+            --color-shadow-dark: rgba(0, 0, 0, 0.5);
+            --color-link-stroke: #64748b;
+
+            --color-modal-content-gradient-start: #1e293b;
+            --color-modal-content-gradient-end: #334155;
+            --color-modal-header-gradient-start: #0f172a;
+            --color-modal-header-gradient-end: #1e293b;
+
+            /* shadcn/ui like semantic variables */
+            --background: var(--color-background-deep-dark);
+            --foreground: var(--color-text-primary);
+            --card: var(--color-background-glass-light); /* Slightly lighter than main bg */
+            --card-foreground: var(--color-text-primary);
+            --popover: var(--color-sidebar-background); /* For tooltips, dropdowns */
+            --popover-foreground: var(--color-text-primary);
+            --primary: var(--color-accent-primary);
+            --primary-foreground: var(--color-text-button);
+            --secondary: var(--color-background-glass-hover); /* For less prominent elements */
+            --secondary-foreground: var(--color-text-secondary);
+            --muted: var(--color-background-glass-light-hover);
+            --muted-foreground: var(--color-text-secondary);
+            --accent: var(--color-accent-secondary);
+            --accent-foreground: var(--color-text-button);
+            --destructive: var(--color-danger-primary);
+            --destructive-foreground: var(--color-text-button);
+            --border: var(--color-border-light);
+            --input: var(--color-border-medium); /* For input field borders */
+            --ring: var(--color-accent-primary); /* For focus rings */
+            --radius: 0.5rem; /* Default border radius */
+        }
+
+        :root.light-mode {
+            --color-background-deep-dark: #e9ecef; 
+            --color-background-dark-accent: #ffffff; 
+            --color-background-dark-alt: #f8f9fa;   
+            --color-text-primary: #212529;         
+            --color-text-button: #ffffff;        
+            --color-text-secondary: #6c757d;       
+            --color-text-modal-primary: #212529;
+            --color-text-modal-secondary: #495057;
+            --color-text-danger-light: #dc3545; 
+
+            --color-background-glass-light: rgba(0, 0, 0, 0.02); 
+            --color-background-glass-hover: rgba(0, 0, 0, 0.04);
+            --color-background-glass-light-hover: rgba(0, 0, 0, 0.03);
+            --color-background-dark-overlay: rgba(255, 255, 255, 0.5); 
+
+            --color-header-background: rgba(255, 255, 255, 0.95); 
+            --color-sidebar-background: rgba(248, 249, 250, 0.95); 
+            --color-main-viz-background: #ffffff;
+            --color-tooltip-background: rgba(255, 255, 255, 0.98);
+            --color-filter-status-background: rgba(33, 37, 41, 0.85); 
+
+
+            --color-border-light: rgba(0, 0, 0, 0.1);
+            --color-border-medium: rgba(0, 0, 0, 0.15);
+            
+            --color-accent-glow-soft: rgba(99, 102, 241, 0.2); 
+            --color-accent-glow-strong: rgba(99, 102, 241, 0.3);
+            --color-accent-shadow-medium: rgba(0, 0, 0, 0.1); 
+            --color-accent-shadow-strong: rgba(0, 0, 0, 0.15);
+            
+            --color-danger-shadow-medium: rgba(220, 38, 38, 0.2); 
+            --color-danger-shadow-strong: rgba(220, 38, 38, 0.3);
+            --color-danger-background-light: rgba(239, 68, 68, 0.1); 
+            --color-danger-background-strong: rgba(239, 68, 68, 0.8); 
+            --color-danger-background-faded: rgba(239, 68, 68, 0.05);
+            --color-danger-background-faded-hover: rgba(239, 68, 68, 0.1);
+            --color-danger-border-faded: rgba(239, 68, 68, 0.2);
+            
+            --color-warning-shadow-medium: rgba(245, 158, 11, 0.2);
+            --color-warning-background-strong: rgba(245, 158, 11, 0.8);
+            
+            --color-success-shadow-medium: rgba(16, 185, 129, 0.2);
+            --color-success-background-faded: rgba(34, 197, 94, 0.08);
+            --color-success-border-faded: rgba(34, 197, 94, 0.25);
+            
+            --color-info-shadow-strong: rgba(59, 130, 246, 0.3);
+            --color-info-background-faded: rgba(59, 130, 246, 0.08);
+            --color-info-border-faded: rgba(59, 130, 246, 0.25);
+            --color-info-shadow-medium: rgba(59, 130, 246, 0.2);
+            
+            --color-cyan-shadow-medium: rgba(6, 182, 212, 0.2);
+            --color-cyan-shadow-strong: rgba(6, 182, 212, 0.3);
+            
+            --color-shimmer-highlight: rgba(0, 0, 0, 0.1); 
+            --color-node-hover-glow: rgba(0, 0, 0, 0.3); 
+            --color-shadow-dark: rgba(0, 0, 0, 0.15); 
+            --color-link-stroke: #adb5bd; 
+
+            --color-modal-content-gradient-start: #ffffff;
+            --color-modal-content-gradient-end: #f8f9fa;
+            --color-modal-header-gradient-start: #f8f9fa;
+            --color-modal-header-gradient-end: #e9ecef;
+
+            /* shadcn/ui like semantic variables - Light Theme Override */
+            --background: var(--color-background-dark-accent); /* White */
+            --foreground: var(--color-text-primary); /* Dark grey */
+            --card: var(--color-background-dark-alt); /* Off-white */
+            --card-foreground: var(--color-text-primary);
+            --popover: #ffffff; /* White popovers */
+            --popover-foreground: var(--color-text-primary);
+            /* --primary: var(--color-accent-primary); */ /* Accent colors often remain the same */
+            /* --primary-foreground: var(--color-text-button); */
+            --secondary: var(--color-background-glass-hover); /* Light grey for secondary elements */
+            --secondary-foreground: var(--color-text-secondary);
+            --muted: var(--color-background-glass-light);
+            --muted-foreground: var(--color-text-secondary);
+            /* --accent: var(--color-accent-secondary); */
+            /* --accent-foreground: var(--color-text-button); */
+            /* --destructive: var(--color-danger-primary); */
+            /* --destructive-foreground: var(--color-text-button); */
+            --border: var(--color-border-light);
+            --input: var(--color-border-medium);
+            /* --ring: var(--color-accent-primary); */
+            /* --radius: 0.5rem; */
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -15,11 +207,11 @@
         }
 
         body {
-            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 50%, #0f1419 100%);
+            background: var(--background);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             height: 100vh;
-            color: #ffffff;
+            color: var(--foreground);
         }
 
         .dashboard-container {
@@ -28,14 +220,14 @@
             grid-template-rows: 80px 1fr;
             height: 100vh;
             gap: 1px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--muted); /* Use a muted background for the grid gaps */
         }
 
         .header {
             grid-column: 1 / -1;
-            background: rgba(10, 14, 26, 0.95);
+            background: var(--card); /* Card background for header */
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border);
             padding: 0 30px;
             display: flex;
             justify-content: space-between;
@@ -51,14 +243,14 @@
         .logo img {
             height: 40px;
             width: auto;
-            border-radius: 8px;
+            border-radius: var(--radius);
         }
 
         .logo-text {
             font-size: 24px;
             font-weight: 700;
-            color: #ffffff;
-            text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+            color: var(--foreground);
+            text-shadow: 0 0 20px var(--color-accent-glow-soft); /* Keep existing or adapt */
         }
 
         .header-controls {
@@ -68,69 +260,233 @@
         }
 
         .btn {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
+            background-color: var(--color-accent-primary); /* Solid background */
+            border: 1px solid transparent; /* Consistent border for layout */
+            color: var(--color-text-button);
+            padding: 0.5rem 1rem; /* shadcn/ui like padding */
+            border-radius: 0.375rem; /* 6px */
             cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            font-weight: 600; /* Medium to Semi-bold */
+            font-size: 0.875rem; /* 14px, common for buttons */
+            line-height: 1.25rem; /* 20px */
+            transition: all 0.2s ease-out; /* Faster transition */
+            box-shadow: none; /* Remove existing shadow */
+            display: inline-flex; /* For icon alignment if any */
+            align-items: center;
+            justify-content: center;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            filter: brightness(90%); /* Subtle hover for primary/danger/info */
+            transform: none; /* Remove previous transform */
+            box-shadow: none; /* Ensure no shadow on hover unless specified */
         }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--color-accent-primary);
+            outline-offset: 2px;
+        }
+        :root.light-mode .btn:focus-visible {
+            outline: 2px solid var(--color-info-primary); /* Ensure visibility on light bg */
+        }
+
 
         .btn.danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            background-color: var(--color-danger-primary);
+            box-shadow: none; /* Remove existing shadow */
         }
+        /* Hover for .btn.danger is handled by .btn:hover */
 
         .sidebar {
-            background: rgba(15, 20, 25, 0.9);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            background: var(--card);
+            backdrop-filter: blur(10px); /* Keep for aesthetics if desired */
+            border-right: 1px solid var(--border);
+            padding: 1.25rem; /* 20px */
             overflow-y: auto;
         }
 
         .main-viz {
-            background: rgba(10, 14, 26, 0.5);
+            background: var(--background); /* Main background for viz area */
             position: relative;
             overflow: hidden;
+            display: flex; /* Added for layout of toggle */
+            flex-direction: column; /* Stack toggle above graph/table */
         }
 
+        #view-toggle-controls {
+            display: flex;
+            justify-content: center;
+            padding: 0.5rem;
+            background-color: var(--card);
+            border-radius: var(--radius);
+            margin: 0.5rem auto 1rem auto; /* Top, Auto, Bottom, Auto */
+            width: fit-content;
+            border: 1px solid var(--border);
+        }
+
+        .view-toggle-btn {
+            background-color: transparent;
+            color: var(--foreground);
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent; /* Transparent by default, active state adds border/bg */
+            border-radius: var(--radius); /* Apply radius to each button for distinct look */
+            cursor: pointer;
+            transition: background-color 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
+            font-weight: 500; /* Slightly less than primary .btn */
+            font-size: 0.875rem;
+        }
+
+        .view-toggle-btn:not(.active):hover {
+            background-color: var(--muted); /* Subtle hover for non-active */
+            border-color: var(--border);
+        }
+
+        .view-toggle-btn.active {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+        
+        .view-toggle-btn:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .view-toggle-btn:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            margin-left: -1px; /* Overlap borders for segmented look */
+        }
+
+        #leaflet-map-container { /* Renamed from #leaflet-map in previous steps */
+            width: 100%;
+            height: 280px; 
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-top: 0.5rem; 
+            margin-bottom: 1.5rem; 
+            background-color: var(--muted); 
+            z-index: 0; 
+        }
+
+        /* Leaflet Popup Styling */
+        .leaflet-popup-content-wrapper {
+            background-color: var(--popover);
+            color: var(--popover-foreground);
+            border-radius: var(--radius);
+            box-shadow: 0 2px 10px var(--color-shadow-dark);
+            padding: 0.25rem; 
+        }
+        .leaflet-popup-content {
+            margin: 0.75rem 1rem; 
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+        .leaflet-popup-tip {
+            background: var(--popover);
+        }
+        .leaflet-popup-close-button {
+            color: var(--popover-foreground) !important;
+            padding: 0.25rem 0.25rem 0 0 !important;
+        }
+        .leaflet-popup-close-button:hover {
+            color: var(--primary) !important;
+            background-color: var(--muted) !important;
+        }
+        
+        /* Custom Leaflet Markers */
+        .custom-leaflet-marker {
+            /* No explicit background needed here if using a dot inside */
+        }
+        .marker-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--background); /* Use main background for border for pop */
+            box-shadow: 0 0 6px var(--color-shadow-dark); /* Subtle shadow */
+            transition: transform 0.2s ease-out;
+        }
+        .custom-leaflet-marker:hover .marker-dot {
+            transform: scale(1.3);
+        }
+        .marker-critical .marker-dot { background-color: var(--risk-critical-color); }
+        .marker-high .marker-dot { background-color: var(--risk-high-color); }
+        .marker-medium .marker-dot { background-color: var(--risk-medium-color); }
+        .marker-low .marker-dot { background-color: var(--risk-low-color); }
+        .marker-info .marker-dot { background-color: var(--risk-info-color); }
+
+
+        #table-view-container {
+            width: 100%;
+            height: calc(100% - 4rem); /* Adjust based on toggle height and margins */
+            overflow-y: auto;
+            padding: 0 1rem; /* Add some padding to the sides */
+        }
+
+        #assets-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--foreground); /* Table text color */
+        }
+
+        #assets-table th {
+            background-color: var(--card);
+            color: var(--foreground);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            font-weight: 600;
+            position: sticky; /* Make headers sticky */
+            top: 0; /* Stick to the top of the scrollable container */
+            z-index: 1; /* Ensure headers are above table content */
+        }
+
+        #assets-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted-foreground);
+        }
+
+        #assets-table tbody tr:hover {
+            background-color: var(--muted);
+        }
+
+        /* Risk level cell styling placeholders */
+        .risk-critical { color: var(--risk-critical-color); font-weight: bold; }
+        .risk-high { color: var(--risk-high-color); font-weight: bold; }
+        .risk-medium { color: var(--risk-medium-color); }
+        .risk-low { color: var(--risk-low-color); }
+        .risk-info { color: var(--risk-info-color); } /* For informational/unknown risks */
+
+
         .stats-panel {
-            background: rgba(15, 20, 25, 0.9);
+            background: var(--card);
             backdrop-filter: blur(10px);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            border-left: 1px solid var(--border);
+            padding: 1.25rem; /* 20px */
             overflow-y: auto;
         }
 
         .kpi-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 1rem; /* 16px */
+            margin-bottom: 1.5rem; /* 24px */
         }
 
         .kpi-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius); /* Use global radius */
+            padding: 1.25rem; /* 20px */
             text-align: center;
-            transition: all 0.3s ease;
+            transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+            box-shadow: 0 1px 2px 0 var(--color-shadow-dark); /* Subtle shadow */
         }
 
         .kpi-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-2px);
+            background: var(--secondary); /* Use secondary background for hover */
+            transform: none; /* Remove previous transform */
+            box-shadow: 0 2px 4px 0 var(--color-shadow-dark); /* Slightly more pronounced shadow */
         }
 
         .kpi-value {
@@ -146,29 +502,29 @@
             letter-spacing: 1px;
         }
 
-        .critical { color: #ef4444; }
-        .high { color: #f97316; }
-        .medium { color: #eab308; }
-        .low { color: #22c55e; }
-        .info { color: #3b82f6; }
+        .critical { color: var(--color-danger-primary); }
+        .high { color: var(--color-warning-primary); }
+        .medium { color: var(--color-warning-secondary); }
+        .low { color: var(--color-success-primary); }
+        .info { color: var(--color-info-primary); }
 
         .section-title {
-            font-size: 16px;
+            font-size: 1rem; /* 16px */
             font-weight: 600;
-            margin-bottom: 15px;
-            color: #ffffff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 8px;
+            margin-bottom: 1rem; /* 16px */
+            color: var(--foreground);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem; /* 8px */
         }
 
         .filter-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem; /* 20px */
         }
 
         .filter-label {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 8px;
+            font-size: 0.75rem; /* 12px */
+            color: var(--muted-foreground); /* Muted text for labels */
+            margin-bottom: 0.5rem; /* 8px */
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -180,50 +536,47 @@
         }
 
         .filter-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            padding: 6px 12px;
-            border-radius: 20px;
+            background: var(--color-background-glass-light);
+            border: 1px solid var(--color-border-medium);
+            color: var(--color-text-secondary); /* Default to secondary text color */
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.375rem; /* Consistent with .btn */
             cursor: pointer;
-            font-size: 11px;
-            transition: all 0.3s ease;
+            font-size: 0.875rem; /* 14px */
+            transition: all 0.2s ease-out;
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* Keep if needed for other effects, but shimmer is removed */
         }
 
         .filter-btn.active {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border-color: #6366f1;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
-            transform: scale(1.05);
+            background: var(--color-accent-primary);
+            border-color: var(--color-accent-primary);
+            color: var(--color-text-button); /* Text on accent */
+            box-shadow: none; /* Remove old glow */
+            transform: none; /* Remove old scale */
         }
 
-        .filter-btn.active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
+        .filter-btn.active::before { /* Remove shimmer */
+            content: none;
         }
 
         .filter-btn:not(.active) {
-            opacity: 0.6;
+            /* opacity: 0.6; */ /* Removing this for better light mode readability */
+        }
+        :root.light-mode .filter-btn:not(.active) {
+            color: var(--color-text-primary); /* Darker text on light mode */
+            background-color: var(--color-background-glass-hover); /* Slightly darker bg for light mode */
         }
 
-        .filter-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-1px);
-            opacity: 1;
+
+        .filter-btn:hover:not(.active) {
+            background: var(--color-background-glass-hover);
+            color: var(--color-text-primary); /* Ensure text is primary on hover */
+            transform: none; /* Remove old transform */
+            opacity: 1; /* Ensure full opacity on hover */
         }
 
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
+        /* @keyframes shimmer removed */
 
         .vulnerability-list {
             max-height: 300px;
@@ -231,21 +584,29 @@
         }
 
         .vuln-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-left: 3px solid;
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 0 6px 6px 0;
+            background: transparent; /* Cleaner look, rely on hover */
+            border-left: 3px solid; /* Color set dynamically by JS */
+            padding: 0.75rem; /* 12px */
+            margin-bottom: 0.5rem; /* 8px */
+            border-radius: var(--radius);
+            transition: background-color 0.2s ease-out;
         }
+        .vuln-item:hover {
+            background-color: var(--muted); /* Use muted for hover */
+            transform: none; /* Remove previous transform */
+        }
+
 
         .vuln-cve {
             font-weight: 600;
-            font-size: 12px;
+            font-size: 0.875rem; /* 14px */
+            color: var(--card-foreground);
         }
 
         .vuln-score {
-            font-size: 11px;
-            opacity: 0.8;
+            font-size: 0.75rem; /* 12px */
+            color: var(--muted-foreground);
+            opacity: 1; /* Remove previous opacity */
         }
 
         .network-container {
@@ -270,7 +631,7 @@
         }
 
         .node:hover {
-            filter: drop-shadow(0px 0px 12px rgba(255, 255, 255, 0.6));
+            filter: drop-shadow(0px 0px 12px var(--color-node-hover-glow));
         }
 
         .link {
@@ -280,16 +641,16 @@
 
         .tooltip {
             position: absolute;
-            background: rgba(15, 20, 25, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 12px;
-            color: #ffffff;
-            font-size: 12px;
+            background: var(--popover);
+            backdrop-filter: blur(10px); /* Keep if desired */
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.75rem; /* 12px */
+            color: var(--popover-foreground);
+            font-size: 0.75rem; /* 12px */
             pointer-events: none;
             z-index: 10000;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 12px var(--color-shadow-dark); /* Consistent shadow */
             max-width: 250px;
             display: none;
         }
@@ -305,7 +666,7 @@
         .spinner {
             width: 4rem;
             height: 4rem;
-            border: 4px solid #3b82f6;
+            border: 4px solid var(--color-info-primary);
             border-top-color: transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -355,66 +716,77 @@
         .timeline-item {
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
+            margin-bottom: 0.75rem; /* 12px */
+            padding: 0.5rem; /* 8px */
+            background: transparent; /* Cleaner look */
+            border-radius: var(--radius);
+            transition: background-color 0.2s ease-out;
+        }
+        .timeline-item:hover {
+            background-color: var(--muted);
         }
 
         .timeline-date {
-            font-size: 10px;
-            color: #94a3b8;
+            font-size: 0.75rem; /* 12px */
+            color: var(--muted-foreground);
             min-width: 60px;
         }
 
         .timeline-event {
-            font-size: 11px;
-            margin-left: 10px;
+            font-size: 0.875rem; /* 14px */
+            margin-left: 0.75rem; /* 12px */
+            color: var(--foreground);
         }
 
         .geo-summary {
-            margin-top: 20px;
+            margin-top: 1.25rem; /* 20px */
         }
 
         .geo-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 0; /* 8px */
+            border-bottom: 1px solid var(--border);
+        }
+        .geo-item:last-child {
+            border-bottom: none;
         }
 
         .geo-country {
-            font-size: 12px;
+            font-size: 0.875rem; /* 14px */
+            color: var(--foreground);
         }
 
         .geo-count {
-            font-size: 12px;
+            font-size: 0.875rem; /* 14px */
             font-weight: 600;
-            color: #6366f1;
+            color: var(--primary);
         }
 
         .executive-summary {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 1rem; /* 16px */
+            margin-bottom: 1rem; /* 16px */
+            border: 1px solid var(--border);
         }
 
         .summary-metric {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            font-size: 12px;
+            margin-bottom: 0.625rem; /* 10px */
+            font-size: 0.875rem; /* 14px */
         }
 
         .summary-label {
-            color: #94a3b8;
+            color: var(--muted-foreground);
         }
 
         .summary-value {
             font-weight: 600;
+            color: var(--card-foreground);
         }
 
         .risk-indicator {
@@ -422,27 +794,29 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 0.5rem; /* 8px */
         }
 
         .attack-vector-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-left: 3px solid #6366f1;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 0.75rem; /* 12px */
+            margin-bottom: 0.5rem; /* 8px */
+            border-left: 3px solid var(--primary);
+            border: 1px solid var(--border); /* Add full border */
+            border-left-width: 3px; /* Keep prominent left border */
         }
 
         .vector-title {
-            font-size: 12px;
+            font-size: 0.875rem; /* 14px */
             font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 4px;
+            color: var(--card-foreground);
+            margin-bottom: 0.25rem; /* 4px */
         }
 
         .vector-description {
-            font-size: 11px;
-            color: #94a3b8;
+            font-size: 0.75rem; /* 12px */
+            color: var(--muted-foreground);
             line-height: 1.4;
         }
 
@@ -452,10 +826,10 @@
 
         @keyframes pulse-glow {
             0%, 100% {
-                box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+                box-shadow: 0 0 5px var(--color-accent-glow-soft);
             }
             50% {
-                box-shadow: 0 0 20px rgba(99, 102, 241, 0.8);
+                box-shadow: 0 0 20px var(--color-accent-glow-strong);
             }
         }
 
@@ -468,7 +842,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: var(--color-shadow-dark);
             backdrop-filter: blur(5px);
         }
 
@@ -488,120 +862,120 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            background: var(--popover); /* Use popover for modal bg */
             margin: 2% auto;
             padding: 0;
-            border-radius: 16px;
+            border-radius: var(--radius); /* Consistent radius */
             width: 90%;
             max-width: 1000px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 30px var(--color-shadow-dark); /* More pronounced shadow for modals */
+            border: 1px solid var(--border);
         }
 
         .modal-header {
-            padding: 24px 32px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 2rem; /* 24px 32px */
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            border-radius: 16px 16px 0 0;
+            background: var(--popover); /* Header same as content or slightly different if needed */
+            border-radius: var(--radius) var(--radius) 0 0; /* Top corners rounded */
         }
 
         .modal-header h2 {
             margin: 0;
-            color: #f1f5f9;
-            font-size: 24px;
+            color: var(--popover-foreground);
+            font-size: 1.5rem; /* 24px */
             font-weight: 600;
         }
 
         .modal-close {
-            color: #94a3b8;
-            font-size: 32px;
+            color: var(--muted-foreground);
+            font-size: 2rem; /* 32px */
             font-weight: bold;
             cursor: pointer;
-            transition: color 0.3s ease;
+            transition: color 0.2s ease-out;
             line-height: 1;
         }
 
         .modal-close:hover {
-            color: #f1f5f9;
+            color: var(--popover-foreground);
         }
 
         .modal-body {
-            padding: 32px;
-            color: #e2e8f0;
+            padding: 2rem; /* 32px */
+            color: var(--popover-foreground);
         }
 
         .vuln-details-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
-            gap: 32px;
-            margin-bottom: 32px;
+            gap: 2rem; /* 32px */
+            margin-bottom: 2rem; /* 32px */
         }
 
         .vuln-cve-header {
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 1rem; /* 16px */
+            margin-bottom: 1.5rem; /* 24px */
         }
 
         .vuln-cve-header h3 {
             margin: 0;
-            color: #f1f5f9;
-            font-size: 28px;
+            color: var(--popover-foreground);
+            font-size: 1.75rem; /* 28px */
             font-weight: 700;
         }
 
         .cvss-badge {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+            background: linear-gradient(135deg, var(--color-danger-primary) 0%, var(--color-danger-secondary) 100%);
+            color: var(--destructive-foreground);
+            padding: 0.5rem 1rem; /* 8px 16px */
+            border-radius: 9999px; /* Pill shape */
             font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            font-size: 0.875rem; /* 14px */
+            box-shadow: 0 2px 8px var(--color-danger-shadow-medium);
         }
 
         .vuln-description, .vuln-severity, .vuln-affected-assets, .vuln-recommendations, .vuln-references {
-            margin-bottom: 24px;
+            margin-bottom: 1.5rem; /* 24px */
         }
 
         .vuln-description h4, .vuln-severity h4, .vuln-affected-assets h4, .vuln-recommendations h4, .vuln-references h4 {
-            color: #f1f5f9;
-            font-size: 18px;
+            color: var(--popover-foreground);
+            font-size: 1.125rem; /* 18px */
             font-weight: 600;
-            margin-bottom: 12px;
-            border-bottom: 2px solid #3b82f6;
-            padding-bottom: 8px;
+            margin-bottom: 0.75rem; /* 12px */
+            border-bottom: 2px solid var(--primary); /* Use primary accent for heading underlines */
+            padding-bottom: 0.5rem; /* 8px */
         }
 
         .severity-metrics {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
+            gap: 1rem; /* 16px */
         }
 
         .metric {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--background); /* Use main background for contrast within modal */
+            padding: 1rem; /* 16px */
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
         }
 
         .metric-label {
             display: block;
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 4px;
+            color: var(--muted-foreground);
+            font-size: 0.875rem; /* 14px */
+            margin-bottom: 0.25rem; /* 4px */
         }
 
         .metric-value {
-            color: #f1f5f9;
-            font-size: 18px;
+            color: var(--foreground);
+            font-size: 1.125rem; /* 18px */
             font-weight: 600;
         }
 
@@ -611,107 +985,123 @@
         }
 
         .affected-asset {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+            background: var(--background);
+            padding: 1rem; /* 16px */
+            border-radius: var(--radius);
+            margin-bottom: 0.75rem; /* 12px */
+            border: 1px solid var(--border);
+            transition: background-color 0.2s ease-out;
         }
 
         .affected-asset:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
+            background: var(--muted);
+            transform: none;
         }
 
         .asset-name {
-            color: #f1f5f9;
+            color: var(--foreground);
             font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 8px;
+            font-size: 1rem; /* 16px */
+            margin-bottom: 0.5rem; /* 8px */
         }
 
         .asset-details {
-            color: #94a3b8;
-            font-size: 14px;
+            color: var(--muted-foreground);
+            font-size: 0.875rem; /* 14px */
         }
 
         .recommendations-list, .references-list {
             display: grid;
-            gap: 16px;
+            gap: 1rem; /* 16px */
         }
 
         .recommendation, .reference {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            padding: 16px;
-            border-radius: 12px;
+            background: var(--color-success-background-faded); /* Keep specific colors for these */
+            border: 1px solid var(--color-success-border-faded);
+            padding: 1rem; /* 16px */
+            border-radius: var(--radius);
         }
 
         .reference {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
+            background: var(--color-info-background-faded);
+            border-color: var(--color-info-border-faded);
         }
 
         .recommendation-title, .reference-title {
-            color: #f1f5f9;
+            color: var(--color-text-modal-primary);
             font-weight: 600;
             margin-bottom: 8px;
         }
 
         .recommendation-text, .reference-text {
-            color: #e2e8f0;
+            color: var(--color-text-modal-secondary);
             line-height: 1.6;
         }
 
         .modal-footer {
             padding: 24px 32px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid var(--color-border-light);
             display: flex;
             justify-content: flex-end;
             gap: 16px;
-            background: rgba(0, 0, 0, 0.2);
+            background: var(--color-background-dark-overlay);
             border-radius: 0 0 16px 16px;
         }
 
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
+        /* .btn styles are already defined, these are overrides for modal buttons */
+        .modal-footer .btn { 
+            padding: 0.5rem 1rem; 
+            font-size: 0.875rem; 
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: var(--secondary); 
+            color: var(--secondary-foreground); 
+            border: 1px solid var(--border);
+            box-shadow: none;
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background-color: var(--muted); 
+            filter: none; 
+            transform: none;
+            box-shadow: none;
+        }
+        :root.light-mode .btn-secondary {
+            background-color: var(--secondary); 
+            color: var(--secondary-foreground);
+            border: 1px solid var(--border);
+        }
+        :root.light-mode .btn-secondary:hover {
+            background-color: var(--muted); 
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+
+        .btn-primary { /* This class is used for modal primary actions */
+            background-color: var(--primary); 
+            color: var(--primary-foreground);
+            box-shadow: none;
+            border: 1px solid transparent;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            filter: brightness(90%); 
+            transform: none;
+            box-shadow: none;
         }
 
         .vuln-item {
             cursor: pointer;
             transition: all 0.3s ease;
+            background: var(--color-background-glass-light); /* Added from other vuln-item definition */
+            border-left: 3px solid; /* Color set dynamically by JS */
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 0 6px 6px 0;
         }
 
         .vuln-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--color-background-glass-light-hover);
             transform: translateX(4px);
         }
 
@@ -732,34 +1122,34 @@
 
         .asset-header h3 {
             margin: 0;
-            color: #f1f5f9;
+            color: var(--color-text-modal-primary);
             font-size: 28px;
             font-weight: 700;
         }
 
         .risk-badge {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--color-danger-primary) 0%, var(--color-danger-secondary) 100%);
+            color: var(--color-text-button);
             padding: 8px 16px;
             border-radius: 20px;
             font-weight: 600;
             font-size: 14px;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 4px 12px var(--color-danger-shadow-medium);
         }
 
         .risk-badge.medium {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            background: linear-gradient(135deg, var(--color-warning-medium-dark) 0%, var(--color-warning-dark) 100%);
+            box-shadow: 0 4px 12px var(--color-warning-shadow-medium);
         }
 
         .risk-badge.low {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            background: linear-gradient(135deg, var(--color-success-medium-dark) 0%, var(--color-success-dark) 100%);
+            box-shadow: 0 4px 12px var(--color-success-shadow-medium);
         }
 
         .risk-badge.critical {
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+            background: linear-gradient(135deg, var(--color-danger-secondary) 0%, var(--color-danger-dark) 100%);
+            box-shadow: 0 4px 12px var(--color-danger-shadow-strong);
         }
 
         .asset-basic-info, .asset-location-info, .asset-security-info, .asset-technical-details, .asset-recommendations {
@@ -773,21 +1163,21 @@
         }
 
         .security-metric {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--color-background-glass-light);
             padding: 16px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--color-border-light);
         }
 
         .security-label {
             display: block;
-            color: #94a3b8;
+            color: var(--color-text-secondary);
             font-size: 14px;
             margin-bottom: 4px;
         }
 
         .security-value {
-            color: #f1f5f9;
+            color: var(--color-text-modal-primary);
             font-size: 18px;
             font-weight: 600;
         }
@@ -799,8 +1189,8 @@
         }
 
         .asset-vuln-item {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: var(--color-danger-background-faded);
+            border: 1px solid var(--color-danger-border-faded);
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 8px;
@@ -809,18 +1199,18 @@
         }
 
         .asset-vuln-item:hover {
-            background: rgba(239, 68, 68, 0.2);
+            background: var(--color-danger-background-faded-hover);
             transform: translateY(-2px);
         }
 
         .asset-vuln-cve {
-            color: #f1f5f9;
+            color: var(--color-text-modal-primary);
             font-weight: 600;
             font-size: 14px;
         }
 
         .asset-vuln-score {
-            color: #fca5a5;
+            color: var(--color-text-danger-light);
             font-size: 12px;
             margin-top: 4px;
         }
@@ -832,47 +1222,49 @@
         }
 
         .technical-detail {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--color-background-glass-light);
             padding: 16px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--color-border-light);
         }
 
         .technical-detail-title {
-            color: #f1f5f9;
+            color: var(--color-text-modal-primary);
             font-weight: 600;
             margin-bottom: 8px;
             font-size: 14px;
         }
 
         .technical-detail-value {
-            color: #e2e8f0;
+            color: var(--color-text-modal-secondary);
             font-size: 13px;
             line-height: 1.4;
         }
 
         .btn-info {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+            background-color: var(--color-cyan-primary);
+            color: var(--color-text-button);
+            box-shadow: none;
+            border: 1px solid transparent;
         }
 
         .btn-info:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+            filter: brightness(90%); /* Standard hover */
+            transform: none;
+            box-shadow: none;
         }
 
         .copy-success {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--color-success-medium-dark) 0%, var(--color-success-dark) 100%);
+            color: var(--color-text-button);
             padding: 12px 24px;
             border-radius: 8px;
             font-weight: 600;
             z-index: 3000;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px var(--color-success-shadow-medium);
             animation: slideInRight 0.3s ease;
         }
 
@@ -920,11 +1312,12 @@
                 <span class="logo-text">Cleopatra</span>
             </div>
             <div style="display: flex; align-items: center; gap: 20px;">
-                <div id="threat-indicator" class="pulse-animation" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(239, 68, 68, 0.2); border-radius: 6px; border: 1px solid #ef4444;">
-                    <div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></div>
-                    <span style="font-size: 12px; color: #ef4444; font-weight: 600;">ACTIVE THREATS DETECTED</span>
+                <div id="threat-indicator" class="pulse-animation" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--color-danger-background-light); border-radius: 6px; border: 1px solid var(--color-danger-primary);">
+                    <div style="width: 8px; height: 8px; background: var(--color-danger-primary); border-radius: 50%;"></div>
+                    <span style="font-size: 12px; color: var(--color-danger-primary); font-weight: 600;">ACTIVE THREATS DETECTED</span>
                 </div>
                 <div class="header-controls">
+                    <button id="theme-toggle-btn" class="btn">🌓 Toggle Theme</button>
                     <button class="btn" onclick="simulateAttackPath()">🎯 Attack Simulation</button>
                     <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
                     <button class="btn" onclick="exportReport()">📊 Export Report</button>
@@ -940,8 +1333,8 @@
                 <div class="filter-label">
                     Risk Level
                     <span style="float: right; font-size: 10px;">
-                        <a href="#" onclick="toggleAllFilters('risk', true)" style="color: #6366f1; text-decoration: none;">All</a> |
-                        <a href="#" onclick="toggleAllFilters('risk', false)" style="color: #6366f1; text-decoration: none;">None</a>
+                        <a href="#" onclick="toggleAllFilters('risk', true)" style="color: var(--color-accent-primary); text-decoration: none;">All</a> |
+                        <a href="#" onclick="toggleAllFilters('risk', false)" style="color: var(--color-accent-primary); text-decoration: none;">None</a>
                     </span>
                 </div>
                 <div class="filter-options">
@@ -956,8 +1349,8 @@
                 <div class="filter-label">
                     Service Type
                     <span style="float: right; font-size: 10px;">
-                        <a href="#" onclick="toggleAllFilters('service', true)" style="color: #6366f1; text-decoration: none;">All</a> |
-                        <a href="#" onclick="toggleAllFilters('service', false)" style="color: #6366f1; text-decoration: none;">None</a>
+                        <a href="#" onclick="toggleAllFilters('service', true)" style="color: var(--color-accent-primary); text-decoration: none;">All</a> |
+                        <a href="#" onclick="toggleAllFilters('service', false)" style="color: var(--color-accent-primary); text-decoration: none;">None</a>
                     </span>
                 </div>
                 <div class="filter-options" id="service-filters">
@@ -969,8 +1362,8 @@
                 <div class="filter-label">
                     Location
                     <span style="float: right; font-size: 10px;">
-                        <a href="#" onclick="toggleAllFilters('location', true)" style="color: #6366f1; text-decoration: none;">All</a> |
-                        <a href="#" onclick="toggleAllFilters('location', false)" style="color: #6366f1; text-decoration: none;">None</a>
+                        <a href="#" onclick="toggleAllFilters('location', true)" style="color: var(--color-accent-primary); text-decoration: none;">All</a> |
+                        <a href="#" onclick="toggleAllFilters('location', false)" style="color: var(--color-accent-primary); text-decoration: none;">None</a>
                     </span>
                 </div>
                 <div class="filter-options" id="location-filters">
@@ -982,9 +1375,7 @@
                 <div class="section-title">Geographic Distribution</div>
                 <div id="geo-breakdown"></div>
             </div>
-
-        <div class="section-title" id="map-section-title" style="margin-top: 1.5rem;">Asset Map</div>
-        <div id="leaflet-map"></div>
+            <div id="leaflet-map-container" style="width: 100%; height: 250px; border-radius: var(--radius); border: 1px solid var(--border); margin-top: 1rem;"></div>
 
             <div class="timeline-container">
                 <div class="section-title">Recent Discoveries</div>
@@ -993,15 +1384,37 @@
         </div>
 
         <div class="main-viz">
+            <div id="view-toggle-controls">
+                <button id="view-toggle-graph" class="view-toggle-btn active">Graph</button>
+                <button id="view-toggle-table" class="view-toggle-btn">Table</button>
+            </div>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <div>Loading Attack Surface Data...</div>
             </div>
-            <div class="filter-status" id="filter-status" style="position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.8); padding: 8px 12px; border-radius: 6px; font-size: 12px; color: #ffffff; z-index: 1000; display: none;">
+            <div class="filter-status" id="filter-status" style="position: absolute; top: 20px; left: 20px; background: var(--color-filter-status-background); padding: 8px 12px; border-radius: 6px; font-size: 12px; color: var(--color-text-primary); z-index: 1000; display: none;">
                 Showing <span id="visible-count">0</span> of <span id="total-count">0</span> assets
             </div>
-            <div class="network-container">
+            <div class="network-container"> <!-- This will be conditionally hidden later -->
                 <svg id="network-svg"></svg>
+            </div>
+            <div id="table-view-container" style="display: none;">
+                <table id="assets-table">
+                    <thead>
+                        <tr>
+                            <th>Asset Name</th>
+                            <th>IP Address</th>
+                            <th>Service</th>
+                            <th>Port</th>
+                            <th>Risk Level</th>
+                            <th>City</th>
+                            <th>Organization</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Table rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
             </div>
             <div class="tooltip" id="tooltip"></div>
         </div>
@@ -1213,7 +1626,14 @@
         };
         let threatMode = false;
         let simulation;
-        let filteredData = [];
+        let filteredData = []; // This will hold the data currently displayed (either all or filtered)
+        let currentView = 'graph'; // 'graph' or 'table'
+        let leafletMap = null;
+        let assetMarkersLayer = null;
+
+        // DOM Element References (add new ones here)
+        let graphViewContainer, tableViewContainer, graphViewBtn, tableViewBtn, assetsTableBody;
+
 
         // Load and process Shodan data
         async function loadShodanData() {
@@ -1243,12 +1663,78 @@
                 updateTimeline();
                 updateAttackVectors();
                 updateExecutiveSummary();
-                hideLoading();
+                hideLoading(); // Hide loading spinner for main content
+
+                initLeafletMap(); // Initialize map after main data is processed
+                updateMapMarkers(); // Initial population of map markers
+
             } catch (error) {
                 console.error('Error loading Shodan data:', error);
                 hideLoading();
             }
         }
+
+        function initLeafletMap() {
+            if (leafletMap) { 
+                leafletMap.remove();
+                leafletMap = null;
+            }
+            const mapDiv = document.getElementById('leaflet-map-container'); // Corrected ID
+            if (mapDiv) { // Ensure the div exists
+                 leafletMap = L.map('leaflet-map-container', { // Corrected ID
+                    preferCanvas: true 
+                 }).setView([20, 0], 2); 
+
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(leafletMap);
+
+                assetMarkersLayer = L.layerGroup().addTo(leafletMap);
+            } else {
+                console.error("Leaflet map container 'leaflet-map-container' not found.");
+            }
+        }
+
+        function updateMapMarkers() {
+            if (!leafletMap || !assetMarkersLayer) {
+                // console.log("Map or markers layer not initialized, skipping marker update.");
+                return;
+            }
+
+            assetMarkersLayer.clearLayers();
+
+            filteredData.forEach(asset => {
+                if (asset.location && asset.location.latitude != null && asset.location.longitude != null) {
+                    let markerClass = 'marker-info'; // Default
+                    if (asset.riskLevel === 'critical') markerClass = 'marker-critical';
+                    else if (asset.riskLevel === 'high') markerClass = 'marker-high';
+                    else if (asset.riskLevel === 'medium') markerClass = 'marker-medium';
+                    else if (asset.riskLevel === 'low') markerClass = 'marker-low';
+
+                    const markerIcon = L.divIcon({
+                        className: `custom-leaflet-marker ${markerClass}`, // Apply risk class to parent for easier CSS targeting
+                        html: `<span class="marker-dot"></span>`, // Inner span is just for the dot shape
+                        iconSize: [12, 12], 
+                        iconAnchor: [6, 6] 
+                    });
+
+                    const marker = L.marker([asset.location.latitude, asset.location.longitude], { icon: markerIcon });
+                    
+                    const sanitizedAssetName = asset.name ? asset.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'N/A';
+                    const popupContent = `
+                        <strong>${sanitizedAssetName}</strong><br>
+                        IP: ${asset.ip}<br>
+                        Risk: ${asset.riskLevel.charAt(0).toUpperCase() + asset.riskLevel.slice(1)}<br>
+                        <a href="#" onclick="event.preventDefault(); showAssetDetails(${JSON.stringify(asset).replace(/"/g, '&quot;')})">View Details</a>
+                    `;
+                    marker.bindPopup(popupContent);
+                    assetMarkersLayer.addLayer(marker);
+                }
+            });
+        }
+
 
         // Embedded Shodan data (first 50 records for demo)
         function getEmbeddedShodanData() {
@@ -2159,7 +2645,7 @@
         }
 
         // Filter functionality
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             // Initial filter event listeners for risk level buttons
             attachFilterEventListeners();
 
@@ -2204,6 +2690,13 @@
 
             // Update statistics
             updateFilteredStats();
+
+            // If table view is active, re-populate it with the new filtered data
+            if (currentView === 'table') {
+                populateAssetsTable();
+            }
+            // Update map markers based on new filters
+            updateMapMarkers();
         }
 
         function updateFilteredStats() {
@@ -2921,8 +3414,148 @@ Source: Attack Surface Management Dashboard`;
 
         // Initialize the dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            loadShodanData();
+            // Initialize DOM element references
+            graphViewContainer = document.querySelector('.network-container');
+            tableViewContainer = document.getElementById('table-view-container');
+            graphViewBtn = document.getElementById('view-toggle-graph');
+            tableViewBtn = document.getElementById('view-toggle-table');
+            assetsTableBody = document.querySelector('#assets-table tbody');
+
+            loadShodanData(); // This will eventually call applyFilters and then populateAssetsTable if table view is active
+            loadThemePreference(); 
+
+            const themeToggleButton = document.getElementById('theme-toggle-btn');
+            if (themeToggleButton) {
+                themeToggleButton.addEventListener('click', toggleTheme);
+            }
+
+            // Add event listeners for view toggle buttons
+            if (graphViewBtn) {
+                graphViewBtn.addEventListener('click', switchToGraphView);
+            }
+            if (tableViewBtn) {
+                tableViewBtn.addEventListener('click', switchToTableView);
+            }
+            
+            // Initial view setup (Graph is active by default HTML/CSS)
+            switchToGraphView(); // Explicitly set graph view on load
         });
+
+        function switchToGraphView() {
+            currentView = 'graph';
+            if (graphViewContainer) graphViewContainer.style.display = 'block'; // Or 'flex' if it's a flex container
+            if (tableViewContainer) tableViewContainer.style.display = 'none';
+            if (graphViewBtn) graphViewBtn.classList.add('active');
+            if (tableViewBtn) tableViewBtn.classList.remove('active');
+            // Optional: Reheat D3 simulation if needed
+            if (simulation) {
+                simulation.alpha(0.3).restart();
+            }
+        }
+
+        function switchToTableView() {
+            currentView = 'table';
+            if (graphViewContainer) graphViewContainer.style.display = 'none';
+            if (tableViewContainer) tableViewContainer.style.display = 'block';
+            if (tableViewBtn) tableViewBtn.classList.add('active');
+            if (graphViewBtn) graphViewBtn.classList.remove('active');
+            populateAssetsTable();
+        }
+
+        function populateAssetsTable() {
+            if (!assetsTableBody) return;
+            assetsTableBody.innerHTML = ''; // Clear existing rows
+
+            if (filteredData.length === 0) {
+                const tr = assetsTableBody.insertRow();
+                const cell = tr.insertCell();
+                cell.colSpan = 7; // Number of columns
+                cell.textContent = 'No data to display matching your filters.';
+                cell.style.textAlign = 'center';
+                cell.style.padding = '1rem';
+                return;
+            }
+
+            filteredData.forEach(asset => {
+                const tr = assetsTableBody.insertRow();
+                
+                tr.insertCell().textContent = asset.name;
+                tr.insertCell().textContent = asset.ip;
+                tr.insertCell().textContent = asset.service;
+                tr.insertCell().textContent = asset.port;
+                
+                const riskCell = tr.insertCell();
+                riskCell.textContent = asset.riskLevel.charAt(0).toUpperCase() + asset.riskLevel.slice(1);
+                riskCell.className = `risk-${asset.riskLevel}`; // Apply class for styling
+                
+                tr.insertCell().textContent = asset.location.city || 'N/A';
+                tr.insertCell().textContent = asset.org || 'N/A';
+
+                // Add click listener to row to show asset details modal
+                tr.style.cursor = 'pointer';
+                tr.addEventListener('click', () => showAssetDetails(asset));
+            });
+        }
+
+
+        function toggleTheme() {
+            const isLightMode = document.documentElement.classList.toggle('light-mode');
+            const themeToggleButton = document.getElementById('theme-toggle-btn');
+            if (isLightMode) {
+                localStorage.setItem('theme', 'light');
+                if (themeToggleButton) themeToggleButton.textContent = '🌙 Dark Mode';
+            } else {
+                localStorage.setItem('theme', 'dark');
+                if (themeToggleButton) themeToggleButton.textContent = '☀️ Light Mode';
+            }
+            // Force D3 elements to re-evaluate styles if necessary
+            if (window.simulation) {
+                 // Re-apply colors based on new CSS variables
+                window.nodeElements.selectAll("circle[r='8'], circle[r='12']") // Main node circles
+                    .attr("fill", d => getRiskColor(d.riskLevel));
+                window.nodeElements.selectAll("circle[r='4']") // Service indicators
+                    .attr("fill", d => getServiceColor(d.service));
+                window.linkElements.attr("stroke", "var(--color-link-stroke)");
+
+                // If you have other D3 elements styled with JS, update them here
+                // For example, if threat mode or other highlights are active:
+                if (typeof resetVisualization === 'function') {
+                    resetVisualization(); // Reset any dynamic highlights
+                }
+                if (window.threatMode && typeof toggleThreatMode === 'function') {
+                    // Re-apply threat mode with new theme colors
+                    // This is a bit hacky, ideally toggleThreatMode would itself be theme-aware
+                    let tempThreatMode = window.threatMode;
+                    toggleThreatMode(); // turn off
+                    toggleThreatMode(); // turn on with new theme
+                    window.threatMode = tempThreatMode; // restore state
+                }
+                 // Update text colors if they are set via D3 and not CSS
+                d3.selectAll(".node text").attr("fill", "var(--color-text-primary)");
+
+                // Optionally, re-heat simulation slightly if visual changes are drastic
+                simulation.alpha(0.1).restart();
+            }
+            if (leafletMap) {
+                // Markers are CSS-based and should update if their classes derive color from CSS vars.
+                // Popups might need refreshing if their content or style is theme-dependent and not pure CSS.
+                // Calling updateMapMarkers() will rebuild markers and their popups, ensuring theme consistency.
+                updateMapMarkers();
+            }
+        }
+
+        function loadThemePreference() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggleButton = document.getElementById('theme-toggle-btn');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light-mode');
+                if (themeToggleButton) themeToggleButton.textContent = '🌙 Dark Mode';
+            } else {
+                document.documentElement.classList.remove('light-mode'); // Default to dark
+                if (themeToggleButton) themeToggleButton.textContent = '☀️ Light Mode';
+            }
+        }
+
 
         // Resize handler
         window.addEventListener('resize', () => {
@@ -2938,3 +3571,5 @@ Source: Attack Surface Management Dashboard`;
     </script>
 </body>
 </html>
+
+[end of index.html]
