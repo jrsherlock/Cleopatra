@@ -1317,7 +1317,7 @@
                     <span style="font-size: 12px; color: var(--color-danger-primary); font-weight: 600;">ACTIVE THREATS DETECTED</span>
                 </div>
                 <div class="header-controls">
-                    <button id="theme-toggle-btn" class="btn">🌓 Toggle Theme</button>
+                    <button id="theme-toggle-btn" class="btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
                     <button class="btn" onclick="simulateAttackPath()">🎯 Attack Simulation</button>
                     <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
                     <button class="btn" onclick="exportReport()">📊 Export Report</button>
@@ -3422,12 +3422,7 @@ Source: Attack Surface Management Dashboard`;
             assetsTableBody = document.querySelector('#assets-table tbody');
 
             loadShodanData(); // This will eventually call applyFilters and then populateAssetsTable if table view is active
-            loadThemePreference(); 
-
-            const themeToggleButton = document.getElementById('theme-toggle-btn');
-            if (themeToggleButton) {
-                themeToggleButton.addEventListener('click', toggleTheme);
-            }
+            loadThemePreference();
 
             // Add event listeners for view toggle buttons
             if (graphViewBtn) {
